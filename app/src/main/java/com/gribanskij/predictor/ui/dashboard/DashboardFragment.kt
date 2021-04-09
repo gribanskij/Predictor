@@ -36,8 +36,6 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
     }
 
-
-
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
