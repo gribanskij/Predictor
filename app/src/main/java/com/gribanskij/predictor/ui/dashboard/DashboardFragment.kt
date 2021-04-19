@@ -7,6 +7,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayoutMediator
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.databinding.FragmentDashboardBinding
+import com.gribanskij.predictor.ui.stock.StockFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 
