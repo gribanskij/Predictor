@@ -2,26 +2,38 @@ package com.gribanskij.predictor.ui.stock
 
 import androidx.lifecycle.*
 import com.gribanskij.predictor.data.Result
-import com.gribanskij.predictor.data.source.Repository
+import com.gribanskij.predictor.data.source.DefaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
+const val STOCK_NAME_SAVED_STATE_KEY = "STOCK_NAME_SAVED_STATE_KEY"
+
 @HiltViewModel
 class StockViewModel @Inject constructor(
-        private val savedStateHandle: SavedStateHandle,
-        private val rep: Repository) : ViewModel() {
+    private val rep: DefaultRepository
+) : ViewModel() {
 
-    private val stockName: String = savedStateHandle["stock"]
-            ?: throw IllegalArgumentException("missing stockName")
 
     private val _user = MutableLiveData<Result<List<String>>>()
-    val user: LiveData<Result<List<String>>> = _user
 
-    init {
+
+    private var mStockName: String? = null
+    private val input = MutableLiveData<String>()
+
+
+    val stockData: LiveData<Result<List<String>>> = Transformations.switchMap(input) {
         viewModelScope.launch {
-            _user.value = rep.getStockData(stockName, Date())
+            _user.value = rep.getStockData(it, Date())
+        }
+        _user
+    }
+
+    fun setStock(sName: String) {
+        if (!sName.equals(mStockName, true)) {
+            mStockName = sName
+            input.value = mStockName!!
         }
     }
 }

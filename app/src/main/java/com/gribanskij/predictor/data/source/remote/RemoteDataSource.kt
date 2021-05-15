@@ -2,6 +2,7 @@ package com.gribanskij.predictor.data.source.remote
 
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DataSource
+import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -12,11 +13,24 @@ import javax.inject.Inject
 const val SBER_NAME = "SBER"
 const val YAND_NAME = "YNDX"
 const val GAZPROM_NAME = "GAZP"
+const val LUKOIL_NAME = "LKOH"
+const val ROSN_NAME = "ROSN"
 
 
-private const val SBER_URL = "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/SBER.cvs?from="
-private const val YAND_URL = "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/YNDX.cvs?from="
-private const val GAZPROM_URL = "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/GAZP.cvs?from="
+private const val SBER_URL =
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/SBER.json?from="
+private const val YAND_URL =
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/YNDX.json?from="
+private const val GAZPROM_URL =
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/GAZP.json?from="
+private const val LUKOIL_URL =
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/LKOH.json?from="
+private const val ROSN_URL =
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/ROSN.json?from="
+
+
+private const val JSON_HISTORY = "history"
+private const val JSON_DATA = "data"
 
 
 class RemoteDataSource @Inject constructor() : DataSource {
@@ -38,11 +52,15 @@ class RemoteDataSource @Inject constructor() : DataSource {
         var outResult: Result<List<String>> = Result.Loading
         val response = mutableListOf<String>()
 
+        val out = StringBuilder()
+
         try {
             val baseUrl = when (stockName) {
                 SBER_NAME -> SBER_URL
                 YAND_NAME -> YAND_URL
                 GAZPROM_NAME -> GAZPROM_URL
+                LUKOIL_NAME -> LUKOIL_URL
+                ROSN_NAME -> ROSN_URL
                 else -> SBER_URL
             }
 
@@ -50,10 +68,22 @@ class RemoteDataSource @Inject constructor() : DataSource {
 
             val mUrl = URL(fullUrl)
             val input = BufferedInputStream(mUrl.openStream())
+
             val s = Scanner(input).useDelimiter("\\n")
             while (s.hasNext()) {
                 val raw = s.next()
-                response.add(raw)
+                out.append(raw)
+            }
+
+            val jObject = JSONObject(out.toString())
+            val jHistory = jObject.getJSONObject(JSON_HISTORY)
+            val jData = jHistory.getJSONArray(JSON_DATA)
+            val size = jData.length()
+
+            for (i in 0 until size) {
+                val tqbr = jData.getJSONArray(i)
+                val close = tqbr.getDouble(11).toString()
+                response.add(close)
             }
             outResult = Result.Success(response)
         } catch (ex: Exception) {

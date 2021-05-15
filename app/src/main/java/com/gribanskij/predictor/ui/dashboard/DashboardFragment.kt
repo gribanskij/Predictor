@@ -11,7 +11,7 @@ import com.gribanskij.predictor.ui.stock.StockFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 
-const val ARG_OBJECT = "stockName"
+const val ARG_STOCK_NAME = "stockName"
 
 
 @AndroidEntryPoint
@@ -60,7 +60,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
             val tabName = getTabName(position)
             val fragment = StockFragment()
             fragment.arguments = Bundle().apply {
-                putString(ARG_OBJECT, tabName)
+                putString(ARG_STOCK_NAME, tabName)
             }
             return fragment
         }
