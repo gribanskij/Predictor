@@ -86,6 +86,9 @@ class RemoteDataSource @Inject constructor() : DataSource {
             val jData = jHistory.getJSONArray(JSON_DATA)
             val size = jData.length()
 
+
+
+
             for (i in 0 until size) {
 
                 val tqbr = jData.getJSONArray(i)
@@ -93,6 +96,9 @@ class RemoteDataSource @Inject constructor() : DataSource {
                 val sdate = tqbr.getString(INDEX_TRADEDATE)
                 val id = tqbr.getString(INDEX_SECID)
                 val name = tqbr.getString(INDEX_SHORTNAME)
+
+
+
                 response.add(Stock(name, id, sdate, close))
             }
             outResult = Result.Success(response)

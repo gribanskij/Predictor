@@ -4,14 +4,20 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.github.mikephil.charting.components.AxisBase
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.Result
+import com.gribanskij.predictor.data.source.Stock
 import com.gribanskij.predictor.databinding.FragmentStockBinding
 import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_NAME
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
+import java.util.*
 
 @AndroidEntryPoint
 class StockFragment:Fragment(R.layout.fragment_stock) {
@@ -49,6 +55,15 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
                     }
 
                     val lDataSet = LineDataSet(dataSet, label)
+                    lDataSet.color = R.color.black
+                    lDataSet.setCircleColor(R.color.black)
+
+                    binding.historyChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+                    //binding.historyChart.xAxis.labelRotationAngle = 45.0f
+                    binding.historyChart.xAxis.valueFormatter = MyXAxisFormatter(it.data)
+                    binding.historyChart.axisRight.setDrawLabels(false)
+                    binding.historyChart.axisLeft.setDrawLabels(false)
+
 
                     binding.historyChart.data = LineData(lDataSet)
                     binding.historyChart.invalidate()
@@ -63,5 +78,16 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
             }
 
         })
+    }
+
+    class MyXAxisFormatter(private val stockList: List<Stock>) : ValueFormatter() {
+        private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        private val nDateFormatter = SimpleDateFormat("EEE, d", Locale.getDefault())
+
+        override fun getAxisLabel(value: Float, axis: AxisBase?): String {
+            val dateString = stockList[value.toInt()].date
+            val date = dateFormatter.parse(dateString)
+            return nDateFormatter.format(date!!)
+        }
     }
 }
