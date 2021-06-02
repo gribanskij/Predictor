@@ -6,7 +6,7 @@ import java.util.*
 
 interface Repository {
 
-    suspend fun getStockData(stockName: String, date: Date): Result<List<String>>
+    suspend fun getStockData(stockName: String, date: Date): Result<List<Stock>>
     suspend fun getPredictData(stockName: String, inputData: List<Float>): Result<Float>
 
 }

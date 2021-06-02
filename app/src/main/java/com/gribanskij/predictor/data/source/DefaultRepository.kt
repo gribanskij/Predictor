@@ -14,7 +14,7 @@ class DefaultRepository @Inject constructor(
     private val ioDispatcher: CoroutineDispatcher
 ) : Repository {
 
-    override suspend fun getStockData(stockName: String, date: Date): Result<List<String>> {
+    override suspend fun getStockData(stockName: String, date: Date): Result<List<Stock>> {
         return withContext(ioDispatcher) {
             remoteDataSource.getData(stockName, date)
         }

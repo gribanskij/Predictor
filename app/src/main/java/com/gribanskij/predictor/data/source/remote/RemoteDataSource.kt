@@ -2,6 +2,7 @@ package com.gribanskij.predictor.data.source.remote
 
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DataSource
+import com.gribanskij.predictor.data.source.Stock
 import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.net.URL
@@ -15,6 +16,11 @@ const val YAND_NAME = "YNDX"
 const val GAZPROM_NAME = "GAZP"
 const val LUKOIL_NAME = "LKOH"
 const val ROSN_NAME = "ROSN"
+
+const val INDEX_TRADEDATE = 1
+const val INDEX_SHORTNAME = 2
+const val INDEX_SECID = 3
+const val INDEX_CLOSE = 11
 
 
 private const val SBER_URL =
@@ -37,7 +43,7 @@ class RemoteDataSource @Inject constructor() : DataSource {
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-    override suspend fun getData(stockName: String, date: Date): Result<List<String>> {
+    override suspend fun getData(stockName: String, date: Date): Result<List<Stock>> {
 
 
         val calendar = Calendar.getInstance().apply {
@@ -49,8 +55,8 @@ class RemoteDataSource @Inject constructor() : DataSource {
         val endDate = dateFormatter.format(date)
 
 
-        var outResult: Result<List<String>> = Result.Loading
-        val response = mutableListOf<String>()
+        var outResult: Result<List<Stock>> = Result.Loading
+        val response = mutableListOf<Stock>()
 
         val out = StringBuilder()
 
@@ -81,9 +87,13 @@ class RemoteDataSource @Inject constructor() : DataSource {
             val size = jData.length()
 
             for (i in 0 until size) {
+
                 val tqbr = jData.getJSONArray(i)
-                val close = tqbr.getDouble(11).toString()
-                response.add(close)
+                val close = tqbr.getDouble(INDEX_CLOSE)
+                val sdate = tqbr.getString(INDEX_TRADEDATE)
+                val id = tqbr.getString(INDEX_SECID)
+                val name = tqbr.getString(INDEX_SHORTNAME)
+                response.add(Stock(name, id, sdate, close))
             }
             outResult = Result.Success(response)
         } catch (ex: Exception) {
