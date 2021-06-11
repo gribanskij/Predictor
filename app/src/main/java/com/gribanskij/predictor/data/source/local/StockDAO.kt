@@ -5,21 +5,27 @@ import androidx.room.Insert
 import androidx.room.Query
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import com.gribanskij.predictor.data.source.local.entities.StockNoID
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StockDAO {
 
     @Query(
-        "SELECT * FROM STOCK WHERE STOCK.stockId =:stockId"
-    )
-    suspend fun getStockById(stockId: String): List<Stock>
+        "SELECT " +
+                "STOCK.name                         AS name, " +
+                "STOCK.stockId                      AS stockId, " +
+                "STOCK.tradeDate                    AS tradeDate, " +
+                "STOCK.priceClose                   AS priceClose, " +
+                "STOCK.priceOpen                    AS priceOpen, " +
+                "STOCK.priceLow                     AS priceLow, " +
+                "STOCK.priceHigh                    AS priceHigh " +
 
-    @Query(
-        "SELECT * FROM STOCK WHERE STOCK.stockId =:stockId AND STOCK.tradeDate < :date ORDER by STOCK.tradeDate LIMIT 10 "
+                "FROM STOCK " +
+                "WHERE STOCK.stockId =:stockId AND STOCK.tradeDate < :date ORDER by STOCK.tradeDate LIMIT 10 "
     )
-    suspend fun getStockBeforeDate(stockId: String, date: String): List<Stock>
+    fun getStockBeforeDate(stockId: String, date: String): Flow<List<StockNoID>>
 
     @Insert(entity = Stock::class)
-    suspend fun insertStock(stock: StockNoID)
+    suspend fun saveStock(stock: StockNoID)
 
 }

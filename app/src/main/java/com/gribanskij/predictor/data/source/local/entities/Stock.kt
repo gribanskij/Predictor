@@ -15,5 +15,5 @@ data class Stock(
     val priceLow: Float,
     val priceHigh: Float,
     @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP")
-    val recordDate: String
+    val sysDate: String
 )

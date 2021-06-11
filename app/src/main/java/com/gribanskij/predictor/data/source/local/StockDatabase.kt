@@ -7,7 +7,7 @@ import com.gribanskij.predictor.data.source.local.entities.Stock
 @Database(
     entities = [Stock::class],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class StockDatabase : RoomDatabase() {
 

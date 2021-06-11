@@ -1,6 +1,7 @@
 package com.gribanskij.predictor.data.source
 
 import com.gribanskij.predictor.data.Result
+import com.gribanskij.predictor.data.source.local.entities.StockNoID
 import com.gribanskij.predictor.data.source.remote.RemoteDataSource
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineDispatcher
@@ -14,9 +15,9 @@ class DefaultRepository @Inject constructor(
     private val ioDispatcher: CoroutineDispatcher
 ) : Repository {
 
-    override suspend fun getStockData(stockName: String, date: Date): Result<List<Stock>> {
+    override suspend fun getStockData(stockName: String, date: Date): Result<List<StockNoID>> {
         return withContext(ioDispatcher) {
-            remoteDataSource.getData(stockName, date)
+            remoteDataSource.getStockData(stockName, date)
         }
     }
 
