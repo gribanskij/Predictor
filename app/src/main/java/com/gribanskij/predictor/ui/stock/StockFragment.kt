@@ -12,6 +12,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.Result
+import com.gribanskij.predictor.data.source.local.entities.StockNoID
 import com.gribanskij.predictor.databinding.FragmentStockBinding
 import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_NAME
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,7 +50,7 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
 
 
                     for ((i, element) in it.data.withIndex()) {
-                        val item = Entry(i.toFloat(), element.close.toFloat())
+                        val item = Entry(i.toFloat(), element.priceClose)
                         dataSet.add(item)
                     }
 
@@ -84,7 +85,7 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
         private val nDateFormatter = SimpleDateFormat("EEE, d", Locale.getDefault())
 
         override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-            val dateString = stockNoIDList[value.toInt()].date
+            val dateString = stockNoIDList[value.toInt()].tradeDate
             val date = dateFormatter.parse(dateString)
             return nDateFormatter.format(date!!)
         }

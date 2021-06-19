@@ -3,6 +3,7 @@ package com.gribanskij.predictor.ui.stock
 import androidx.lifecycle.*
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DefaultRepository
+import com.gribanskij.predictor.data.source.local.entities.StockNoID
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.util.*

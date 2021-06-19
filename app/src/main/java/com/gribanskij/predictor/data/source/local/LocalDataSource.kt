@@ -6,17 +6,26 @@ import com.gribanskij.predictor.data.source.local.entities.StockNoID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.*
+import javax.inject.Inject
 
-class LocalDataSource internal constructor(
+class LocalDataSource @Inject constructor(
     private val stockDAO: StockDAO
 ) : DataSource {
 
-    override suspend fun getStockData(stockName: String, date: Date): Result<List<StockNoID>> {
+    override suspend fun getStockData(
+        stockName: String,
+        sDate: String,
+        eDate: String
+    ): Result<List<StockNoID>> {
         return Result.Success(listOf())
     }
 
-    override fun observeStockData(stockName: String, date: Date): Flow<Result<List<StockNoID>>> =
-        stockDAO.getStockBeforeDate(stockName, date.toString()).map {
+    override fun observeStockData(
+        stockName: String,
+        sDate: String,
+        eDate: String
+    ): Flow<Result<List<StockNoID>>> =
+        stockDAO.getStockBeforeDate(stockName, sDate, eDate).map {
             Result.Success(it)
         }
 

@@ -4,7 +4,6 @@ import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DataSource
 import com.gribanskij.predictor.data.source.local.entities.StockNoID
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -47,22 +46,18 @@ private const val JSON_HISTORY = "history"
 private const val JSON_DATA = "data"
 
 
-class RemoteDataSource @Inject internal constructor(
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+class RemoteDataSource @Inject constructor(
+    val ioDispatcher: CoroutineDispatcher
 ) : DataSource {
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-    override suspend fun getStockData(stockName: String, date: Date): Result<List<StockNoID>> =
+    override suspend fun getStockData(
+        stockName: String,
+        sDate: String,
+        eDate: String
+    ): Result<List<StockNoID>> =
         withContext(ioDispatcher) {
-
-            val calendar = Calendar.getInstance().apply {
-                time = date
-                add(Calendar.DAY_OF_MONTH, -10)
-            }
-
-            val startDate = dateFormatter.format(calendar.time)
-            val endDate = dateFormatter.format(date)
 
 
             var outResult: Result<List<StockNoID>> = Result.Loading
@@ -80,7 +75,7 @@ class RemoteDataSource @Inject internal constructor(
                     else -> SBER_URL
                 }
 
-                val fullUrl = "$baseUrl$startDate&till%20=%$endDate"
+                val fullUrl = "$baseUrl$sDate&till%20=%$eDate"
 
                 val mUrl = URL(fullUrl)
                 val input = BufferedInputStream(mUrl.openStream())
@@ -130,7 +125,11 @@ class RemoteDataSource @Inject internal constructor(
         }
 
 
-    override fun observeStockData(stockName: String, date: Date): Flow<Result<List<StockNoID>>> {
+    override fun observeStockData(
+        stockName: String,
+        sDate: String,
+        eDate: String
+    ): Flow<Result<List<StockNoID>>> {
         return flow {
             emit(Result.Error(Exception("Not implemented")))
         }

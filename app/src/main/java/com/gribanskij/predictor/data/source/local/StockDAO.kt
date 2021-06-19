@@ -21,9 +21,10 @@ interface StockDAO {
                 "STOCK.priceHigh                    AS priceHigh " +
 
                 "FROM STOCK " +
-                "WHERE STOCK.stockId =:stockId AND STOCK.tradeDate < :date ORDER by STOCK.tradeDate LIMIT 10 "
+                "WHERE STOCK.stockId =:stockId AND STOCK.tradeDate >=:sDate AND STOCK.tradeDate <=:eDate " +
+                "ORDER by STOCK.tradeDate "
     )
-    fun getStockBeforeDate(stockId: String, date: String): Flow<List<StockNoID>>
+    fun getStockBeforeDate(stockId: String, sDate: String, eDate: String): Flow<List<StockNoID>>
 
     @Insert(entity = Stock::class)
     suspend fun saveStock(stock: StockNoID)
