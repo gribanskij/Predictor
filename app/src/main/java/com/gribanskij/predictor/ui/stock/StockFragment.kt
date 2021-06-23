@@ -12,7 +12,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.Result
-import com.gribanskij.predictor.data.source.local.entities.StockNoID
+import com.gribanskij.predictor.data.source.local.entities.Stock
 import com.gribanskij.predictor.databinding.FragmentStockBinding
 import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_NAME
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,7 +38,7 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentStockBinding.bind(view)
 
-        model.stockNoIDData.observe(viewLifecycleOwner, {
+        model.stockData.observe(viewLifecycleOwner, {
             binding.text.text = it.toString()
 
 
@@ -80,7 +80,7 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
         })
     }
 
-    class MyXAxisFormatter(private val stockNoIDList: List<StockNoID>) : ValueFormatter() {
+    class MyXAxisFormatter(private val stockNoIDList: List<Stock>) : ValueFormatter() {
         private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         private val nDateFormatter = SimpleDateFormat("EEE, d", Locale.getDefault())
 

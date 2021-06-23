@@ -2,7 +2,7 @@ package com.gribanskij.predictor.data.source.local
 
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DataSource
-import com.gribanskij.predictor.data.source.local.entities.StockNoID
+import com.gribanskij.predictor.data.source.local.entities.Stock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.*
@@ -16,7 +16,7 @@ class LocalDataSource @Inject constructor(
         stockName: String,
         sDate: String,
         eDate: String
-    ): Result<List<StockNoID>> {
+    ): Result<List<Stock>> {
         return Result.Success(listOf())
     }
 
@@ -24,7 +24,7 @@ class LocalDataSource @Inject constructor(
         stockName: String,
         sDate: String,
         eDate: String
-    ): Flow<Result<List<StockNoID>>> =
+    ): Flow<Result<List<Stock>>> =
         stockDAO.getStockBeforeDate(stockName, sDate, eDate).map {
             Result.Success(it)
         }

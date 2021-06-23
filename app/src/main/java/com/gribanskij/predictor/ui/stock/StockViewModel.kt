@@ -3,7 +3,7 @@ package com.gribanskij.predictor.ui.stock
 import androidx.lifecycle.*
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DefaultRepository
-import com.gribanskij.predictor.data.source.local.entities.StockNoID
+import com.gribanskij.predictor.data.source.local.entities.Stock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.util.*
@@ -16,12 +16,12 @@ class StockViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    private val data = MutableLiveData<Result<List<StockNoID>>>()
+    private val data = MutableLiveData<Result<List<Stock>>>()
     private var mStockName: String? = null
     private val input = MutableLiveData<String>()
 
 
-    val stockNoIDData: LiveData<Result<List<StockNoID>>> = Transformations.switchMap(input) {
+    val stockData: LiveData<Result<List<Stock>>> = Transformations.switchMap(input) {
         viewModelScope.launch {
             data.value = rep.getStockData(it, Date())
         }

@@ -2,7 +2,9 @@ package com.gribanskij.predictor.data.source.remote
 
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DataSource
-import com.gribanskij.predictor.data.source.local.entities.StockNoID
+import com.gribanskij.predictor.data.source.local.entities.Stock
+import com.gribanskij.predictor.utils.getSysDate
+import com.gribanskij.predictor.utils.getTimeInMs
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -56,12 +58,12 @@ class RemoteDataSource @Inject constructor(
         stockName: String,
         sDate: String,
         eDate: String
-    ): Result<List<StockNoID>> =
+    ): Result<List<Stock>> =
         withContext(ioDispatcher) {
 
 
-            var outResult: Result<List<StockNoID>> = Result.Loading
-            val response = mutableListOf<StockNoID>()
+            var outResult: Result<List<Stock>> = Result.Loading
+            val response = mutableListOf<Stock>()
 
             val out = StringBuilder()
 
@@ -105,14 +107,16 @@ class RemoteDataSource @Inject constructor(
 
 
                     response.add(
-                        StockNoID(
+                        Stock(
+                            id = getTimeInMs(sdate)?.toInt() ?: -1,
                             name = name,
                             stockId = id,
                             tradeDate = sdate,
                             priceClose = close.toFloat(),
                             priceHigh = high.toFloat(),
                             priceLow = low.toFloat(),
-                            priceOpen = open.toFloat()
+                            priceOpen = open.toFloat(),
+                            sysDate = getSysDate(Date())
                         )
                     )
                 }
@@ -129,7 +133,7 @@ class RemoteDataSource @Inject constructor(
         stockName: String,
         sDate: String,
         eDate: String
-    ): Flow<Result<List<StockNoID>>> {
+    ): Flow<Result<List<Stock>>> {
         return flow {
             emit(Result.Error(Exception("Not implemented")))
         }

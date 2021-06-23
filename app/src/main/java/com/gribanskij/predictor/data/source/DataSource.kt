@@ -1,7 +1,7 @@
 package com.gribanskij.predictor.data.source
 
 import com.gribanskij.predictor.data.Result
-import com.gribanskij.predictor.data.source.local.entities.StockNoID
+import com.gribanskij.predictor.data.source.local.entities.Stock
 import kotlinx.coroutines.flow.Flow
 import java.util.*
 
@@ -10,13 +10,13 @@ interface DataSource {
         stockName: String,
         sDate: String,
         eDate: String
-    ): Result<List<StockNoID>>
+    ): Result<List<Stock>>
 
     fun observeStockData(
         stockName: String,
         sDate: String,
         eDate: String
-    ): Flow<Result<List<StockNoID>>>
+    ): Flow<Result<List<Stock>>>
 
     suspend fun saveData(stockName: String, date: Date)
     suspend fun getPredictStockData(stockName: String, inputData: List<Float>): Result<List<Float>>
