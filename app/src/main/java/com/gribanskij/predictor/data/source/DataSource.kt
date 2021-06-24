@@ -3,7 +3,6 @@ package com.gribanskij.predictor.data.source
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import kotlinx.coroutines.flow.Flow
-import java.util.*
 
 interface DataSource {
     suspend fun getStockData(
@@ -16,8 +15,9 @@ interface DataSource {
         stockName: String,
         sDate: String,
         eDate: String
-    ): Flow<Result<List<Stock>>>
+    ): Flow<List<Stock>>
 
-    suspend fun saveData(stockName: String, date: Date)
+    suspend fun saveData(stock: List<Stock>)
     suspend fun getPredictStockData(stockName: String, inputData: List<Float>): Result<List<Float>>
+    suspend fun getStockDataFromDB(stockName: String, sDate: String, eDate: String): List<Stock>
 }

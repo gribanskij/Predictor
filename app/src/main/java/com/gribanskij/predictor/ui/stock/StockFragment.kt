@@ -11,7 +11,6 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
-import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import com.gribanskij.predictor.databinding.FragmentStockBinding
 import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_NAME
@@ -33,7 +32,6 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
         }
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentStockBinding.bind(view)
@@ -41,41 +39,26 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
         model.stockData.observe(viewLifecycleOwner, {
             binding.text.text = it.toString()
 
-
-            when (it) {
-                is Result.Success -> {
-
                     val dataSet = mutableListOf<Entry>()
                     val label = arguments?.getString(ARG_STOCK_NAME, "?")
 
-
-                    for ((i, element) in it.data.withIndex()) {
+                    for ((i, element) in it.withIndex()) {
                         val item = Entry(i.toFloat(), element.priceClose)
                         dataSet.add(item)
                     }
-
                     val lDataSet = LineDataSet(dataSet, label)
                     lDataSet.color = R.color.black
                     lDataSet.setCircleColor(R.color.black)
 
                     binding.historyChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
                     //binding.historyChart.xAxis.labelRotationAngle = 45.0f
-                    binding.historyChart.xAxis.valueFormatter = MyXAxisFormatter(it.data)
+            binding.historyChart.xAxis.valueFormatter = MyXAxisFormatter(it)
                     binding.historyChart.axisRight.setDrawLabels(false)
                     binding.historyChart.axisLeft.setDrawLabels(false)
-
 
                     binding.historyChart.data = LineData(lDataSet)
                     binding.historyChart.invalidate()
 
-
-                }
-                is Result.Error -> {
-                    binding.text.text = it.toString()
-                }
-                else -> {
-                }
-            }
 
         })
     }

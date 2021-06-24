@@ -3,8 +3,6 @@ package com.gribanskij.predictor.data.source.remote
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DataSource
 import com.gribanskij.predictor.data.source.local.entities.Stock
-import com.gribanskij.predictor.utils.getSysDate
-import com.gribanskij.predictor.utils.getTimeInMs
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,31 +15,31 @@ import java.util.*
 import javax.inject.Inject
 
 
-const val SBER_NAME = "SBER"
-const val YAND_NAME = "YNDX"
-const val GAZPROM_NAME = "GAZP"
-const val LUKOIL_NAME = "LKOH"
-const val ROSN_NAME = "ROSN"
+private const val SBER_NAME = "SBER"
+private const val YAND_NAME = "YNDX"
+private const val GAZPROM_NAME = "GAZP"
+private const val LUKOIL_NAME = "LKOH"
+private const val ROSN_NAME = "ROSN"
 
-const val INDEX_TRADEDATE = 1
-const val INDEX_SHORTNAME = 2
-const val INDEX_SECID = 3
-const val INDEX_CLOSE = 11
-const val INDEX_LOW = 7
-const val INDEX_HIGH = 8
-const val INDEX_OPEN = 6
+private const val INDEX_TRADEDATE = 1
+private const val INDEX_SHORTNAME = 2
+private const val INDEX_SECID = 3
+private const val INDEX_CLOSE = 11
+private const val INDEX_LOW = 7
+private const val INDEX_HIGH = 8
+private const val INDEX_OPEN = 6
 
 
 private const val SBER_URL =
-    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/SBER.json?from="
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/SBER.json?"
 private const val YAND_URL =
-    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/YNDX.json?from="
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/YNDX.json?"
 private const val GAZPROM_URL =
-    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/GAZP.json?from="
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/GAZP.json?"
 private const val LUKOIL_URL =
-    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/LKOH.json?from="
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/LKOH.json?"
 private const val ROSN_URL =
-    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/ROSN.json?from="
+    "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/ROSN.json?"
 
 
 private const val JSON_HISTORY = "history"
@@ -49,10 +47,11 @@ private const val JSON_DATA = "data"
 
 
 class RemoteDataSource @Inject constructor(
-    val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher
 ) : DataSource {
 
-    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH)
+    private val idFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
 
     override suspend fun getStockData(
         stockName: String,
@@ -77,7 +76,7 @@ class RemoteDataSource @Inject constructor(
                     else -> SBER_URL
                 }
 
-                val fullUrl = "$baseUrl$sDate&till%20=%$eDate"
+                val fullUrl = "${baseUrl}from=${sDate}&till=$eDate"
 
                 val mUrl = URL(fullUrl)
                 val input = BufferedInputStream(mUrl.openStream())
@@ -92,6 +91,7 @@ class RemoteDataSource @Inject constructor(
                 val jHistory = jObject.getJSONObject(JSON_HISTORY)
                 val jData = jHistory.getJSONArray(JSON_DATA)
                 val size = jData.length()
+                val currentDateTime = formatter.format(Date())
 
 
                 for (i in 0 until size) {
@@ -101,22 +101,24 @@ class RemoteDataSource @Inject constructor(
                     val low = tqbr.getDouble(INDEX_LOW)
                     val open = tqbr.getDouble(INDEX_OPEN)
                     val close = tqbr.getDouble(INDEX_CLOSE)
-                    val sdate = tqbr.getString(INDEX_TRADEDATE)
+                    val tdate = tqbr.getString(INDEX_TRADEDATE)
                     val id = tqbr.getString(INDEX_SECID)
                     val name = tqbr.getString(INDEX_SHORTNAME)
+
+                    val sqlId = (idFormatter.parse(tdate)?.time ?: 0) + getStockCode(stockName)
 
 
                     response.add(
                         Stock(
-                            id = getTimeInMs(sdate)?.toInt() ?: -1,
+                            id = sqlId,
                             name = name,
                             stockId = id,
-                            tradeDate = sdate,
+                            tradeDate = tdate,
                             priceClose = close.toFloat(),
                             priceHigh = high.toFloat(),
                             priceLow = low.toFloat(),
                             priceOpen = open.toFloat(),
-                            sysDate = getSysDate(Date())
+                            sysDate = currentDateTime
                         )
                     )
                 }
@@ -133,13 +135,13 @@ class RemoteDataSource @Inject constructor(
         stockName: String,
         sDate: String,
         eDate: String
-    ): Flow<Result<List<Stock>>> {
+    ): Flow<List<Stock>> {
         return flow {
-            emit(Result.Error(Exception("Not implemented")))
+            emit(listOf())
         }
     }
 
-    override suspend fun saveData(stockName: String, date: Date) {
+    override suspend fun saveData(stock: List<Stock>) {
     }
 
     override suspend fun getPredictStockData(
@@ -147,5 +149,24 @@ class RemoteDataSource @Inject constructor(
         inputData: List<Float>
     ): Result<List<Float>> {
         return Result.Error(Exception("Not implemented"))
+    }
+
+    override suspend fun getStockDataFromDB(
+        stockName: String,
+        sDate: String,
+        eDate: String
+    ): List<Stock> {
+        return emptyList()
+    }
+
+    private fun getStockCode(stockName: String): Int {
+        return when (stockName) {
+            SBER_NAME -> 0
+            YAND_NAME -> 1
+            GAZPROM_NAME -> 2
+            LUKOIL_NAME -> 3
+            ROSN_NAME -> 4
+            else -> 5
+        }
     }
 }

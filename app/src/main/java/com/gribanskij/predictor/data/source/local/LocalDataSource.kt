@@ -4,8 +4,6 @@ import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DataSource
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import java.util.*
 import javax.inject.Inject
 
 class LocalDataSource @Inject constructor(
@@ -24,13 +22,14 @@ class LocalDataSource @Inject constructor(
         stockName: String,
         sDate: String,
         eDate: String
-    ): Flow<Result<List<Stock>>> =
-        stockDAO.getStockBeforeDate(stockName, sDate, eDate).map {
-            Result.Success(it)
+    ): Flow<List<Stock>> =
+        stockDAO.subscribeStockData(stockName, sDate, eDate)
+
+
+    override suspend fun saveData(stock: List<Stock>) {
+        stock.forEach {
+            stockDAO.saveStock(it)
         }
-
-
-    override suspend fun saveData(stockName: String, date: Date) {
     }
 
     override suspend fun getPredictStockData(
@@ -38,5 +37,13 @@ class LocalDataSource @Inject constructor(
         inputData: List<Float>
     ): Result<List<Float>> {
         return Result.Success(listOf())
+    }
+
+    override suspend fun getStockDataFromDB(
+        stockName: String,
+        sDate: String,
+        eDate: String
+    ): List<Stock> {
+        return stockDAO.getStockInDB(stockName, sDate, eDate)
     }
 }
