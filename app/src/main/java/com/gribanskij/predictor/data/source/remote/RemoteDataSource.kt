@@ -15,11 +15,11 @@ import java.util.*
 import javax.inject.Inject
 
 
-private const val SBER_NAME = "SBER"
-private const val YAND_NAME = "YNDX"
-private const val GAZPROM_NAME = "GAZP"
-private const val LUKOIL_NAME = "LKOH"
-private const val ROSN_NAME = "ROSN"
+const val SBER_NAME = "SBER"
+const val YAND_NAME = "YNDX"
+const val GAZPROM_NAME = "GAZP"
+const val LUKOIL_NAME = "LKOH"
+const val ROSN_NAME = "ROSN"
 
 private const val INDEX_TRADEDATE = 1
 private const val INDEX_SHORTNAME = 2
@@ -166,7 +166,7 @@ class RemoteDataSource @Inject constructor(
             GAZPROM_NAME -> 2
             LUKOIL_NAME -> 3
             ROSN_NAME -> 4
-            else -> 5
+            else -> 100
         }
     }
 }

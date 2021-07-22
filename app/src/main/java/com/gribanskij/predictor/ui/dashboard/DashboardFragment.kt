@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayoutMediator
 import com.gribanskij.predictor.R
+import com.gribanskij.predictor.data.source.remote.*
 import com.gribanskij.predictor.databinding.FragmentDashboardBinding
 import com.gribanskij.predictor.ui.stock.StockFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -68,22 +69,22 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
          fun getTabName(position: Int): String {
             return when (position) {
                 0 -> {
-                    "SBER"
+                    SBER_NAME
                 }
                 1 -> {
-                    "YNDX"
+                    YAND_NAME
                 }
                 2 -> {
-                    "GAZP"
+                    GAZPROM_NAME
                 }
                 3 -> {
-                    "LKOH"
+                    LUKOIL_NAME
                 }
                 4 -> {
-                    "ROSN"
+                    ROSN_NAME
                 }
                 else -> {
-                    "SBER"
+                    SBER_NAME
                 }
             }
         }

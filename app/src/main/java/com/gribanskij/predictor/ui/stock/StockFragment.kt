@@ -19,10 +19,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @AndroidEntryPoint
-class StockFragment:Fragment(R.layout.fragment_stock) {
+class StockFragment : Fragment(R.layout.fragment_stock) {
     private var _binding: FragmentStockBinding? = null
     private val binding get() = _binding!!
     private val model: StockViewModel by viewModels()
+
+    private val stockDataSet = mutableListOf<Entry>()
+    private val predictDataSet = mutableListOf<Entry>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,39 +39,72 @@ class StockFragment:Fragment(R.layout.fragment_stock) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentStockBinding.bind(view)
 
+        chartInit()
+
         model.stockData.observe(viewLifecycleOwner, {
             binding.text.text = it.toString()
+            stockDataSet.clear()
 
-                    val dataSet = mutableListOf<Entry>()
-                    val label = arguments?.getString(ARG_STOCK_NAME, "?")
+            for ((i, element) in it.withIndex()) {
+                val item = Entry(i.toFloat(), element.priceClose)
+                stockDataSet.add(item)
+            }
 
-                    for ((i, element) in it.withIndex()) {
-                        val item = Entry(i.toFloat(), element.priceClose)
-                        dataSet.add(item)
-                    }
-                    val lDataSet = LineDataSet(dataSet, label)
-                    lDataSet.color = R.color.black
-                    lDataSet.setCircleColor(R.color.black)
+            val label = arguments?.getString(ARG_STOCK_NAME, "?")
+            val lDataSet = LineDataSet(stockDataSet, label)
+            lDataSet.color = R.color.black
+            lDataSet.setCircleColor(R.color.black)
 
-                    binding.historyChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-                    //binding.historyChart.xAxis.labelRotationAngle = 45.0f
+            val pDataSet = LineDataSet(predictDataSet, label)
+            pDataSet.color = R.color.teal_200
+            pDataSet.setCircleColor(R.color.teal_200)
+
+
             binding.historyChart.xAxis.valueFormatter = MyXAxisFormatter(it)
-                    binding.historyChart.axisRight.setDrawLabels(false)
-                    binding.historyChart.axisLeft.setDrawLabels(false)
+            binding.historyChart.data = LineData(lDataSet, pDataSet)
+            binding.historyChart.invalidate()
 
-                    binding.historyChart.data = LineData(lDataSet)
-                    binding.historyChart.invalidate()
+        })
+
+        model.predictData.observe(viewLifecycleOwner, {
+            predictDataSet.clear()
+
+            for ((i, element) in it.withIndex()) {
+                val predictItem = Entry(i.toFloat(), element.value)
+                predictDataSet.add(predictItem)
+            }
+
+            val label = arguments?.getString(ARG_STOCK_NAME, "?")
+            val lDataSet = LineDataSet(stockDataSet, label)
+            lDataSet.color = R.color.black
+            lDataSet.setCircleColor(R.color.black)
+
+            val pDataSet = LineDataSet(predictDataSet, label)
+            pDataSet.color = R.color.teal_200
+            pDataSet.setCircleColor(R.color.teal_200)
+
+            binding.historyChart.data = LineData(lDataSet, pDataSet)
+            binding.historyChart.invalidate()
 
 
         })
     }
 
-    class MyXAxisFormatter(private val stockNoIDList: List<Stock>) : ValueFormatter() {
+    private fun chartInit() {
+
+        binding.historyChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        //binding.historyChart.xAxis.labelRotationAngle = 45.0f
+        binding.historyChart.axisRight.setDrawLabels(false)
+        binding.historyChart.axisLeft.setDrawLabels(false)
+
+    }
+
+    class MyXAxisFormatter(private val stockList: List<Stock>) : ValueFormatter() {
         private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         private val nDateFormatter = SimpleDateFormat("EEE, d", Locale.getDefault())
 
         override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-            val dateString = stockNoIDList[value.toInt()].tradeDate
+            val dateString = stockList[value.toInt()].tradeDate
             val date = dateFormatter.parse(dateString)
             return nDateFormatter.format(date!!)
         }

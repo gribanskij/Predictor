@@ -6,13 +6,16 @@ import java.util.*
 import javax.inject.Inject
 
 
-//завершения работы ММВБ
+//время завершения работы ММВБ, часы в Москве
 const val MMVB_END_TIME = 20
 
 
 class DateMaker @Inject constructor() {
 
     private val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+    private val timeZone = TimeZone.getTimeZone("Europe/Moscow")
+    private val locale = Locale.getDefault()
+
 
     //список выходных дней в 2021г кроме воскресенья и субботы
     private val listDayOff = listOf(
@@ -24,16 +27,17 @@ class DateMaker @Inject constructor() {
     //список рабочих суббот в 2021
     private val listWorkDay = listOf("2021-02-20")
 
-    //возвращает список дат - рабочих дней ММВБ.
+    //возвращает список дат - рабочих дней ММВБ. Количесвто дат определяется dayNum.
+    //startDate - дата до котороый нужны рабочие дни ММВБ в заданом количестве
     @Synchronized
     fun getListDate(dayNum: Int, startDate: Date): List<String> {
         val resultListDate = mutableListOf<String>()
-        val calendar = Calendar.getInstance()
+        val calendar = Calendar.getInstance(timeZone, locale)
         calendar.time = startDate
 
 
-        val carHour = calendar.get(Calendar.HOUR_OF_DAY)
-        if (carHour < MMVB_END_TIME) calendar.add(Calendar.DAY_OF_MONTH, -1)
+        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+        if (currentHour < MMVB_END_TIME) calendar.add(Calendar.DAY_OF_MONTH, -1)
 
         do {
 
