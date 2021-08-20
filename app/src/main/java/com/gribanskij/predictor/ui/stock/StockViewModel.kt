@@ -25,6 +25,7 @@ class StockViewModel @Inject constructor(
         rep.observeStockData(it, Date()).asLiveData()
     }.distinctUntilChanged()
 
+
     private val _predictData = MutableLiveData<List<PredictData>>()
 
     val predictData: LiveData<List<PredictData>> = Transformations.switchMap(stockData) {
@@ -34,7 +35,7 @@ class StockViewModel @Inject constructor(
             it.forEach { stock ->
                 pData.add(PredictData(stock.tradeDate, stock.priceOpen))
             }
-            _predictData.value = pData
+            _predictData.value = pData.subList(1, 3)
         }
         _predictData
     }

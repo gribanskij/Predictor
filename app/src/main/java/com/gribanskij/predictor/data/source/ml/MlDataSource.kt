@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import javax.inject.Inject
@@ -35,7 +37,8 @@ class MlDataSource @Inject constructor(
 
     fun init(stockName: String) {
         tflitemodel = loadModelfile(getModelFileName(stockName))
-
+        tfliteoptions.setNumThreads(1)
+        tflite = Interpreter(tflitemodel, tfliteoptions)
     }
 
 
@@ -53,11 +56,20 @@ class MlDataSource @Inject constructor(
 
     private fun loadModelfile(modelFileName: String): MappedByteBuffer {
         val fileDescriptor: AssetFileDescriptor = context.assets.openFd(modelFileName)
-        val inputStream: FileInputStream = FileInputStream(fileDescriptor.fileDescriptor)
+        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
         val fileChannel: FileChannel = inputStream.channel
         val startOffset: Long = fileDescriptor.startOffset
         val declaredLength: Long = fileDescriptor.declaredLength
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
+    }
+
+
+    private fun doInference(input: FloatArray): Float {
+        val outputVal: ByteBuffer = ByteBuffer.allocateDirect(4)
+        outputVal.order(ByteOrder.nativeOrder())
+        tflite.run(input, outputVal)
+        outputVal.rewind()
+        return outputVal.float
     }
 
 
