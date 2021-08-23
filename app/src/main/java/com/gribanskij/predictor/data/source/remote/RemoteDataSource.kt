@@ -4,8 +4,6 @@ import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DataSource
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.BufferedInputStream
@@ -129,35 +127,6 @@ class RemoteDataSource @Inject constructor(
 
             return@withContext outResult
         }
-
-
-    override fun observeStockData(
-        stockName: String,
-        sDate: String,
-        eDate: String
-    ): Flow<List<Stock>> {
-        return flow {
-            emit(listOf())
-        }
-    }
-
-    override suspend fun saveData(stock: List<Stock>) {
-    }
-
-    override suspend fun getPredictStockData(
-        stockName: String,
-        inputData: List<Float>
-    ): Result<List<Float>> {
-        return Result.Error(Exception("Not implemented"))
-    }
-
-    override suspend fun getStockDataFromDB(
-        stockName: String,
-        sDate: String,
-        eDate: String
-    ): List<Stock> {
-        return emptyList()
-    }
 
     private fun getStockCode(stockName: String): Int {
         return when (stockName) {

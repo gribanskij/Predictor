@@ -94,19 +94,4 @@ class MlDataSource @Inject constructor(
     override suspend fun saveData(stock: List<Stock>) {
     }
 
-    override suspend fun getPredictStockData(
-        stockName: String,
-        inputData: List<Float>
-    ): Result<List<Float>> {
-
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getStockDataFromDB(
-        stockName: String,
-        sDate: String,
-        eDate: String
-    ): List<Stock> {
-        return emptyList()
-    }
 }

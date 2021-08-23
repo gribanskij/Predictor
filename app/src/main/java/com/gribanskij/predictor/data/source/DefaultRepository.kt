@@ -6,9 +6,10 @@ import com.gribanskij.predictor.data.source.local.entities.Stock
 import com.gribanskij.predictor.di.ViewModelModule
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import java.util.*
 import javax.inject.Inject
 
@@ -28,39 +29,71 @@ class DefaultRepository @Inject constructor(
     lateinit var dateMaker: DateMaker
 
 
-    override suspend fun getStockData(stockName: String, date: Date): Result<List<Stock>> {
-        return Result.Success(listOf())
-    }
-
-    override suspend fun getPredictData(stockName: String, inputData: List<Float>): Result<Float> {
-        return Result.Success(0.0f)
-    }
-
-    override fun observeStockData(stockName: String, date: Date): Flow<List<Stock>> {
-        val interval = dateMaker.getListDate(INPUT_NUM_DAYS, date)
-        val sDate = interval.last()
-        val eDate = interval.first()
-        return localDataS.observeStockData(stockName, sDate, eDate)
-    }
-
-    override fun checkNewData(stockName: String, date: Date) {
-        GlobalScope.launch {
+    override fun observePredictData(stockName: String, date: Date): Flow<Result<List<Stock>>> {
+        return flow {
             val interval = dateMaker.getListDate(INPUT_NUM_DAYS, date)
             val sDate = interval.last()
             val eDate = interval.first()
-            val data = localDataS.getStockDataFromDB(stockName, sDate, eDate)
+            val res = localDataS.getStockData(stockName, sDate, eDate) as Result.Success
 
-            if (data.size == INPUT_NUM_DAYS) return@launch
+            if (res.data.size == INPUT_NUM_DAYS) {
+                when (val result = remoteDataS.getStockData(stockName, sDate, eDate)) {
 
-            when (val result = remoteDataS.getStockData(stockName, sDate, eDate)) {
+                    is Result.Success -> {
+                        localDataS.saveData(result.data)
+                        emit(result)
+                    }
+                    is Result.Error -> {
+                        emit(result)
+                    }
 
-                is Result.Success -> {
-                    localDataS.saveData(result.data)
+                    is Result.Loading -> {
+                        emit(result)
+                    }
                 }
-                is Result.Error -> {
-                }
+            }
 
-                is Result.Loading -> {
+
+        }
+    }
+
+    override fun observeStockData(stockName: String, date: Date): Flow<Result<List<Stock>>> {
+
+        val interval = dateMaker.getListDate(INPUT_NUM_DAYS, date)
+        val sDate = interval.last()
+        val eDate = interval.first()
+
+        return localDataS.observeStockData(stockName, sDate, eDate).distinctUntilChanged().map {
+            if (it.size == INPUT_NUM_DAYS) Result.Success(it)
+            else {
+                Result.Loading
+            }
+        }
+    }
+
+
+    override fun observeUpdateStatus(stockName: String, date: Date): Flow<Result<List<Stock>>> {
+
+        return flow {
+            val interval = dateMaker.getListDate(INPUT_NUM_DAYS, date)
+            val sDate = interval.last()
+            val eDate = interval.first()
+            val res = localDataS.getStockData(stockName, sDate, eDate) as Result.Success
+
+            if (res.data.size != INPUT_NUM_DAYS) {
+                when (val result = remoteDataS.getStockData(stockName, sDate, eDate)) {
+
+                    is Result.Success -> {
+                        localDataS.saveData(result.data)
+                        emit(result)
+                    }
+                    is Result.Error -> {
+                        emit(result)
+                    }
+
+                    is Result.Loading -> {
+                        emit(result)
+                    }
                 }
             }
         }

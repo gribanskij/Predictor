@@ -2,6 +2,7 @@ package com.gribanskij.predictor.ui.stock
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.github.mikephil.charting.components.AxisBase
@@ -11,10 +12,12 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
+import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import com.gribanskij.predictor.databinding.FragmentStockBinding
 import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_NAME
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,34 +38,62 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
         }
     }
 
+    @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentStockBinding.bind(view)
 
         chartInit()
 
+
+
+        model.updateStatus.observe(viewLifecycleOwner, {
+
+            val event = it.getContentIfNotHandled()
+
+            event?.let { e ->
+                when (e) {
+
+                    is Result.Success -> {
+                        Toast.makeText(requireContext(), "Данные обновлены", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                    is Result.Loading -> {
+                        Toast.makeText(
+                            requireContext(),
+                            "Загрузка актуальных данных",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+                    is Result.Error -> {
+                        binding.progress.visibility = View.INVISIBLE
+                        Toast.makeText(
+                            requireContext(),
+                            e.exception.localizedMessage,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+        })
+
         model.stockData.observe(viewLifecycleOwner, {
             binding.text.text = it.toString()
-            stockDataSet.clear()
 
-            for ((i, element) in it.withIndex()) {
-                val item = Entry(i.toFloat(), element.priceClose)
-                stockDataSet.add(item)
+            when (it) {
+                is Result.Success -> {
+                    binding.progress.visibility = View.INVISIBLE
+                    showData(it.data)
+                }
+                is Result.Error -> {
+                    binding.progress.visibility = View.INVISIBLE
+                }
+                is Result.Loading -> {
+                    binding.progress.visibility = View.VISIBLE
+                }
             }
 
-            val label = arguments?.getString(ARG_STOCK_NAME, "?")
-            val lDataSet = LineDataSet(stockDataSet, label)
-            lDataSet.color = R.color.black
-            lDataSet.setCircleColor(R.color.black)
-
-            val pDataSet = LineDataSet(predictDataSet, label)
-            pDataSet.color = R.color.teal_200
-            pDataSet.setCircleColor(R.color.teal_200)
-
-
-            binding.historyChart.xAxis.valueFormatter = MyXAxisFormatter(it)
-            binding.historyChart.data = LineData(lDataSet, pDataSet)
-            binding.historyChart.invalidate()
 
         })
 
@@ -88,6 +119,31 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
 
 
         })
+    }
+
+
+    private fun showData(data: List<Stock>) {
+        stockDataSet.clear()
+        for ((i, element) in data.withIndex()) {
+            val item = Entry(i.toFloat(), element.priceClose)
+            stockDataSet.add(item)
+        }
+
+        val label = arguments?.getString(ARG_STOCK_NAME, "?")
+        val lDataSet = LineDataSet(stockDataSet, label)
+        lDataSet.color = R.color.black
+        lDataSet.setCircleColor(R.color.black)
+
+        val pDataSet = LineDataSet(predictDataSet, label)
+        pDataSet.color = R.color.teal_200
+        pDataSet.setCircleColor(R.color.teal_200)
+
+
+        binding.historyChart.xAxis.valueFormatter = MyXAxisFormatter(data)
+        binding.historyChart.data = LineData(lDataSet, pDataSet)
+        binding.historyChart.invalidate()
+
+
     }
 
     private fun chartInit() {

@@ -16,7 +16,15 @@ interface StockDAO {
                 "WHERE STOCK.stockId =:stockId AND STOCK.tradeDate >=:sDate AND STOCK.tradeDate <=:eDate " +
                 "ORDER by STOCK.tradeDate "
     )
-    fun subscribeStockData(stockId: String, sDate: String, eDate: String): Flow<List<Stock>>
+    fun observeStockData(stockId: String, sDate: String, eDate: String): Flow<List<Stock>>
+
+    @Query(
+        "SELECT * " +
+                "FROM STOCK " +
+                "WHERE STOCK.stockId =:stockId AND STOCK.tradeDate >=:sDate AND STOCK.tradeDate <=:eDate " +
+                "ORDER by STOCK.tradeDate "
+    )
+    suspend fun getStockData(stockId: String, sDate: String, eDate: String): List<Stock>
 
     @Query(
         "SELECT * " +
@@ -27,6 +35,7 @@ interface StockDAO {
     suspend fun getStockInDB(stockId: String, sDate: String, eDate: String): List<Stock>
 
     @Insert(onConflict = REPLACE)
-    suspend fun saveStock(stock: Stock)
+    fun saveStock(stock: Stock)
+
 
 }
