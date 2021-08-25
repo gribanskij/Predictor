@@ -79,7 +79,6 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
         })
 
         model.stockData.observe(viewLifecycleOwner, {
-            binding.text.text = it.toString()
 
             when (it) {
                 is Result.Success -> {
@@ -98,25 +97,33 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
         })
 
         model.predictData.observe(viewLifecycleOwner, {
-            predictDataSet.clear()
 
-            for ((i, element) in it.withIndex()) {
-                val predictItem = Entry(i.toFloat(), element.value)
-                predictDataSet.add(predictItem)
+            when (it) {
+
+                is Result.Success -> {
+                    predictDataSet.clear()
+
+                    for ((i, element) in it.data.withIndex()) {
+                        val predictItem = Entry(i.toFloat(), element.value)
+                        predictDataSet.add(predictItem)
+                    }
+                    val label = arguments?.getString(ARG_STOCK_NAME, "?")
+                    val lDataSet = LineDataSet(stockDataSet, label)
+                    lDataSet.color = R.color.black
+                    lDataSet.setCircleColor(R.color.black)
+
+                    val pDataSet = LineDataSet(predictDataSet, label)
+                    pDataSet.color = R.color.teal_200
+                    pDataSet.setCircleColor(R.color.teal_200)
+
+                    binding.historyChart.data = LineData(lDataSet, pDataSet)
+                    binding.historyChart.invalidate()
+
+                }
+                else -> {
+
+                }
             }
-
-            val label = arguments?.getString(ARG_STOCK_NAME, "?")
-            val lDataSet = LineDataSet(stockDataSet, label)
-            lDataSet.color = R.color.black
-            lDataSet.setCircleColor(R.color.black)
-
-            val pDataSet = LineDataSet(predictDataSet, label)
-            pDataSet.color = R.color.teal_200
-            pDataSet.setCircleColor(R.color.teal_200)
-
-            binding.historyChart.data = LineData(lDataSet, pDataSet)
-            binding.historyChart.invalidate()
-
 
         })
     }

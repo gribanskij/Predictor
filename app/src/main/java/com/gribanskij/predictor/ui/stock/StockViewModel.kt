@@ -2,8 +2,9 @@ package com.gribanskij.predictor.ui.stock
 
 import androidx.lifecycle.*
 import com.gribanskij.predictor.Event
+import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DefaultRepository
-import com.gribanskij.predictor.data.source.PredictData
+import com.gribanskij.predictor.data.source.SimpleStock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import java.util.*
@@ -29,20 +30,8 @@ class StockViewModel @Inject constructor(
     }
 
 
-    private val _predictData = MutableLiveData<List<PredictData>>()
-
-    val predictData: LiveData<List<PredictData>> = Transformations.switchMap(stockData) {
-
-        /*
-        viewModelScope.launch {
-            val pData = mutableListOf<PredictData>()
-            it.forEach { stock ->
-                pData.add(PredictData(stock.tradeDate, stock.priceOpen))
-            }
-            _predictData.value = pData.subList(1, 3)
-        }
-         */
-        _predictData
+    val predictData: LiveData<Result<List<SimpleStock>>> = input.switchMap {
+        rep.observePredictData(it, Date()).asLiveData()
     }
 
     //задаем название акции.

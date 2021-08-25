@@ -1,6 +1,7 @@
 package com.gribanskij.predictor.data.source
 
-data class PredictData(
+data class SimpleStock(
+    val name: String,
     val date: String,
     val value: Float
 )
