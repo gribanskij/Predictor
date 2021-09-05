@@ -30,28 +30,34 @@ class DateMaker @Inject constructor() {
     //возвращает список дат - рабочих дней ММВБ. Количесвто дат определяется dayNum.
     //startDate - дата до котороый нужны рабочие дни ММВБ в заданом количестве
     @Synchronized
-    fun getListDate(dayNum: Int, startDate: Date): List<String> {
+    fun getPrevWorkDate(dayNum: Int, startDate: Date): List<String> {
         val resultListDate = mutableListOf<String>()
         val calendar = Calendar.getInstance(timeZone, locale)
         calendar.time = startDate
 
 
-        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-        if (currentHour < MMVB_END_TIME) calendar.add(Calendar.DAY_OF_MONTH, -1)
+        //val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+        //if (currentHour < MMVB_END_TIME) calendar.add(Calendar.DAY_OF_MONTH, -1)
+
+        //начинаем с предыдущего дня отсносительно текущего
+        calendar.add(Calendar.DAY_OF_MONTH, -1)
 
         do {
 
             when (calendar.get(Calendar.DAY_OF_WEEK)) {
+                //100% выходной день, пропускаем.
                 Calendar.SUNDAY -> {
                     calendar.add(Calendar.DAY_OF_MONTH, -1)
                 }
                 Calendar.SATURDAY -> {
                     val date = formatter.format(calendar.time)
+                    //может суббота рабочая?
                     if (listWorkDay.contains(date)) resultListDate.add(date)
                     calendar.add(Calendar.DAY_OF_MONTH, -1)
                 }
                 else -> {
                     val date = formatter.format(calendar.time)
+                    //может выходной день?
                     if (!listDayOff.contains(date)) resultListDate.add(date)
                     calendar.add(Calendar.DAY_OF_MONTH, -1)
                 }
@@ -61,4 +67,46 @@ class DateMaker @Inject constructor() {
         return resultListDate
 
     }
+
+    //возвращает список дат - рабочих дней ММВБ. Количесвто дат определяется dayNum.
+    //startDate - дата c котороый нужны рабочие дни ММВБ в заданом количестве
+    @Synchronized
+    fun getFutureWorkDate(dayNum: Int, startDate: Date): List<String> {
+        val resultListDate = mutableListOf<String>()
+        val calendar = Calendar.getInstance(timeZone, locale)
+        calendar.time = startDate
+
+
+        //val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+        //if (currentHour < MMVB_END_TIME) calendar.add(Calendar.DAY_OF_MONTH, -1)
+
+        //начинаем с следующего дня относительно текущего
+        calendar.add(Calendar.DAY_OF_MONTH, 1)
+
+        do {
+
+            when (calendar.get(Calendar.DAY_OF_WEEK)) {
+                //100% выходной день, пропускаем.
+                Calendar.SUNDAY -> {
+                    calendar.add(Calendar.DAY_OF_MONTH, 1)
+                }
+                Calendar.SATURDAY -> {
+                    val date = formatter.format(calendar.time)
+                    //может суббота рабочая?
+                    if (listWorkDay.contains(date)) resultListDate.add(date)
+                    calendar.add(Calendar.DAY_OF_MONTH, 1)
+                }
+                else -> {
+                    val date = formatter.format(calendar.time)
+                    //может выходной день?
+                    if (!listDayOff.contains(date)) resultListDate.add(date)
+                    calendar.add(Calendar.DAY_OF_MONTH, 1)
+                }
+            }
+        } while (resultListDate.size != dayNum)
+
+        return resultListDate
+
+    }
+
 }

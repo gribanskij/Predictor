@@ -34,7 +34,7 @@ class DefaultRepository @Inject constructor(
         stockName: String,
         date: Date
     ): Flow<Result<List<SimpleStock>>> {
-        val interval = dateMaker.getListDate(INPUT_NUM_DAYS, date)
+        val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
         val sDate = interval.last()
         val eDate = interval.first()
         predictor.init(stockName)
@@ -42,18 +42,20 @@ class DefaultRepository @Inject constructor(
         return localDataS.observeStockData(stockName, sDate, eDate).distinctUntilChanged()
             .map { data ->
 
-
+                //начинаем расчет только когда достаточно входных данных
                 if (data.size == INPUT_NUM_DAYS) {
 
                     val predictData = mutableListOf<SimpleStock>()
                     val input = mutableListOf<Float>()
                     input.addAll(data.map { it.priceClose })
 
-                    data.forEach {
+                    val futureDates = dateMaker.getFutureWorkDate(INPUT_NUM_DAYS, date)
+
+                    futureDates.forEach {
                         val res = predictor.doInference(input.toFloatArray())
                         input.removeFirst()
                         input.add(res)
-                        predictData.add(SimpleStock(stockName, it.tradeDate, res))
+                        predictData.add(SimpleStock(stockName, it, res))
                     }
 
                     Result.Success(predictData)
@@ -62,33 +64,11 @@ class DefaultRepository @Inject constructor(
                 }
             }.flowOn(ioDispatcher)
 
-        /*
-        return flow {
-            val interval = dateMaker.getListDate(INPUT_NUM_DAYS, date)
-            val sDate = interval.last()
-            val eDate = interval.first()
-            val res = localDataS.getStockData(stockName, sDate, eDate) as Result.Success
-
-
-            if (res.data.size == INPUT_NUM_DAYS) {
-                predictor.init(stockName)
-
-                val input = res.data.map { it.priceClose }.toFloatArray()
-
-                val res = predictor.doInference(input)
-
-                val d = 1
-
-                emit(res)
-            }
-        }
-
-         */
     }
 
     override fun observeStockData(stockName: String, date: Date): Flow<Result<List<Stock>>> {
 
-        val interval = dateMaker.getListDate(INPUT_NUM_DAYS, date)
+        val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
         val sDate = interval.last()
         val eDate = interval.first()
 
@@ -104,7 +84,7 @@ class DefaultRepository @Inject constructor(
     override fun observeUpdateStatus(stockName: String, date: Date): Flow<Result<List<Stock>>> {
 
         return flow {
-            val interval = dateMaker.getListDate(INPUT_NUM_DAYS, date)
+            val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
             val sDate = interval.last()
             val eDate = interval.first()
             val res = localDataS.getStockData(stockName, sDate, eDate) as Result.Success

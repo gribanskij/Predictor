@@ -16,28 +16,34 @@ class StockViewModel @Inject constructor(
     private val rep: DefaultRepository
 ) : ViewModel() {
 
-    private val input = MutableLiveData<String>()
+    private val input = MutableLiveData<StockData>()
 
-    val updateStatus = input.switchMap { sName ->
-        rep.observeUpdateStatus(sName, Date()).map {
+
+    //сообщения
+    val updateStatus = input.distinctUntilChanged().switchMap { stock ->
+        rep.observeUpdateStatus(stock.name, stock.date).map {
             Event(it)
         }.asLiveData()
     }
 
-
-    val stockData = input.switchMap { sName ->
-        rep.observeStockData(sName, Date()).asLiveData()
+    //данные по торгам с Мос.Биржи
+    val stockData = input.distinctUntilChanged().switchMap { stock ->
+        rep.observeStockData(stock.name, stock.date).asLiveData()
     }
 
-
-    val predictData: LiveData<Result<List<SimpleStock>>> = input.switchMap {
-        rep.observePredictData(it, Date()).asLiveData()
-    }
+    //данные предсказанные ML
+    val predictData: LiveData<Result<List<SimpleStock>>> =
+        input.distinctUntilChanged().switchMap { stock ->
+            rep.observePredictData(stock.name, stock.date).asLiveData()
+        }
 
     //задаем название акции.
-    fun setStock(sName: String) {
-        if (!input.value.equals(sName, true)) {
-            input.value = sName
-        }
+    fun setStock(stock: StockData) {
+        input.value = stock
     }
+
+    data class StockData(
+        val name: String,
+        val date: Date
+    )
 }

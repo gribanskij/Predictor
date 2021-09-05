@@ -13,11 +13,11 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.Result
+import com.gribanskij.predictor.data.source.SimpleStock
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import com.gribanskij.predictor.databinding.FragmentStockBinding
 import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_NAME
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,11 +34,15 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            model.setStock(it.getString(ARG_STOCK_NAME, "?"))
+
+            val stock = StockViewModel.StockData(
+                name = it.getString(ARG_STOCK_NAME, "?"),
+                date = Date()
+            )
+            model.setStock(stock)
         }
     }
 
-    @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentStockBinding.bind(view)
@@ -67,7 +71,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
 
                     }
                     is Result.Error -> {
-                        binding.progress.visibility = View.INVISIBLE
+                        //binding.progress.visibility = View.INVISIBLE
                         Toast.makeText(
                             requireContext(),
                             e.exception.localizedMessage,
@@ -82,14 +86,14 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
 
             when (it) {
                 is Result.Success -> {
-                    binding.progress.visibility = View.INVISIBLE
+                    //binding.progress.visibility = View.INVISIBLE
                     showData(it.data)
                 }
                 is Result.Error -> {
-                    binding.progress.visibility = View.INVISIBLE
+                    //binding.progress.visibility = View.INVISIBLE
                 }
                 is Result.Loading -> {
-                    binding.progress.visibility = View.VISIBLE
+                    //binding.progress.visibility = View.VISIBLE
                 }
             }
 
@@ -108,16 +112,14 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                         predictDataSet.add(predictItem)
                     }
                     val label = arguments?.getString(ARG_STOCK_NAME, "?")
-                    val lDataSet = LineDataSet(stockDataSet, label)
-                    lDataSet.color = R.color.black
-                    lDataSet.setCircleColor(R.color.black)
 
                     val pDataSet = LineDataSet(predictDataSet, label)
                     pDataSet.color = R.color.teal_200
                     pDataSet.setCircleColor(R.color.teal_200)
 
-                    binding.historyChart.data = LineData(lDataSet, pDataSet)
-                    binding.historyChart.invalidate()
+                    binding.modelChart.xAxis.valueFormatter = PredictXAxisFormatter(it.data)
+                    binding.modelChart.data = LineData(pDataSet)
+                    binding.modelChart.invalidate()
 
                 }
                 else -> {
@@ -141,28 +143,39 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
         lDataSet.color = R.color.black
         lDataSet.setCircleColor(R.color.black)
 
-        val pDataSet = LineDataSet(predictDataSet, label)
-        pDataSet.color = R.color.teal_200
-        pDataSet.setCircleColor(R.color.teal_200)
 
-
-        binding.historyChart.xAxis.valueFormatter = MyXAxisFormatter(data)
-        binding.historyChart.data = LineData(lDataSet, pDataSet)
-        binding.historyChart.invalidate()
+        binding.dataChart.xAxis.valueFormatter = StockXAxisFormatter(data)
+        binding.dataChart.data = LineData(lDataSet)
+        binding.dataChart.invalidate()
 
 
     }
 
     private fun chartInit() {
 
-        binding.historyChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        binding.dataChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         //binding.historyChart.xAxis.labelRotationAngle = 45.0f
-        binding.historyChart.axisRight.setDrawLabels(false)
-        binding.historyChart.axisLeft.setDrawLabels(false)
+        binding.dataChart.axisRight.setDrawLabels(false)
+        binding.dataChart.axisLeft.setDrawLabels(false)
+
+        binding.modelChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        binding.modelChart.axisRight.setDrawLabels(false)
+        binding.modelChart.axisLeft.setDrawLabels(false)
 
     }
 
-    class MyXAxisFormatter(private val stockList: List<Stock>) : ValueFormatter() {
+    class StockXAxisFormatter(private val stockList: List<Stock>) : ValueFormatter() {
+        private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        private val nDateFormatter = SimpleDateFormat("EEE, d", Locale.getDefault())
+
+        override fun getAxisLabel(value: Float, axis: AxisBase?): String {
+            val dateString = stockList[value.toInt()].tradeDate
+            val date = dateFormatter.parse(dateString)
+            return nDateFormatter.format(date!!)
+        }
+    }
+
+    class PredictXAxisFormatter(private val stockList: List<SimpleStock>) : ValueFormatter() {
         private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         private val nDateFormatter = SimpleDateFormat("EEE, d", Locale.getDefault())
 

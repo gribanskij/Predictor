@@ -20,14 +20,8 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
-
-    private lateinit var stockAdapter: StockAdapter
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        stockAdapter = StockAdapter(this)
-    }
+    private val tabNames =
+        mapOf(0 to SBER_NAME, 1 to YAND_NAME, 2 to GAZPROM_NAME, 3 to LUKOIL_NAME, 4 to ROSN_NAME)
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -44,49 +38,26 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     }
 
 
-    private fun initTab(){
-        binding.pager.adapter = stockAdapter
+    private fun initTab() {
+
+        binding.pager.adapter = StockAdapter(this, tabNames)
         TabLayoutMediator(binding.tabLayout, binding.pager) { tab, position ->
-            val tabName = stockAdapter.getTabName(position)
-            tab.text = tabName
+            tab.text = tabNames[position]
         }.attach()
     }
 
 
-    class StockAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
+    class StockAdapter(fragment: Fragment, val names: Map<Int, String>) :
+        FragmentStateAdapter(fragment) {
 
-        override fun getItemCount(): Int = 5
+        override fun getItemCount(): Int = names.size
 
         override fun createFragment(position: Int): Fragment {
-            val tabName = getTabName(position)
             val fragment = StockFragment()
             fragment.arguments = Bundle().apply {
-                putString(ARG_STOCK_NAME, tabName)
+                putString(ARG_STOCK_NAME, names[position])
             }
             return fragment
-        }
-
-         fun getTabName(position: Int): String {
-            return when (position) {
-                0 -> {
-                    SBER_NAME
-                }
-                1 -> {
-                    YAND_NAME
-                }
-                2 -> {
-                    GAZPROM_NAME
-                }
-                3 -> {
-                    LUKOIL_NAME
-                }
-                4 -> {
-                    ROSN_NAME
-                }
-                else -> {
-                    SBER_NAME
-                }
-            }
         }
     }
 }
