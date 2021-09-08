@@ -117,9 +117,9 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                     pDataSet.color = R.color.teal_200
                     pDataSet.setCircleColor(R.color.teal_200)
 
-                    binding.modelChart.xAxis.valueFormatter = PredictXAxisFormatter(it.data)
-                    binding.modelChart.data = LineData(pDataSet)
-                    binding.modelChart.invalidate()
+                    //binding.modelChart.xAxis.valueFormatter = PredictXAxisFormatter(it.data)
+                    //binding.modelChart.data = LineData(pDataSet)
+                    //binding.modelChart.invalidate()
 
                 }
                 else -> {
@@ -158,9 +158,9 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
         binding.dataChart.axisRight.setDrawLabels(false)
         binding.dataChart.axisLeft.setDrawLabels(false)
 
-        binding.modelChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-        binding.modelChart.axisRight.setDrawLabels(false)
-        binding.modelChart.axisLeft.setDrawLabels(false)
+        //binding.modelChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        //binding.modelChart.axisRight.setDrawLabels(false)
+        //binding.modelChart.axisLeft.setDrawLabels(false)
 
     }
 
