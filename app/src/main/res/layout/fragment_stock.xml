@@ -87,10 +87,22 @@
                 android:src="@drawable/ic_trending_up_24"
                 app:layout_constraintBottom_toBottomOf="@+id/predictPrice"
                 app:layout_constraintStart_toEndOf="@+id/predictPrice"
-                app:layout_constraintTop_toTopOf="@+id/predictPrice"></androidx.appcompat.widget.AppCompatImageView>
+                app:layout_constraintTop_toTopOf="@+id/predictPrice">
+
+            </androidx.appcompat.widget.AppCompatImageView>
+
+            <ProgressBar
+                android:id="@+id/predictProgress"
+                style="@android:style/Widget.ProgressBar.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
@@ -137,6 +149,16 @@
 
                 </TextView>
 
+                <ProgressBar
+                    android:id="@+id/historyProgress"
+                    style="@android:style/Widget.ProgressBar.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
@@ -180,6 +202,16 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/dataToggle" />
+
+                <ProgressBar
+                    android:id="@+id/chartProgress"
+                    style="@android:style/Widget.ProgressBar.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="@+id/dataChart"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
@@ -216,11 +248,12 @@
 
             <TextView
                 android:id="@+id/mlTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
                 android:layout_marginTop="32dp"
                 android:text="ML модель"
+                app:layout_constraintEnd_toStartOf="@+id/successMlFactor"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView3">
 
@@ -229,6 +262,7 @@
             <TextView
                 android:id="@+id/successMlFactor"
                 android:layout_width="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:layout_height="wrap_content"
                 android:text="65%"
                 app:layout_constraintBottom_toBottomOf="@+id/mlTitle"
@@ -239,11 +273,12 @@
 
             <TextView
                 android:id="@+id/simpleTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
                 android:layout_marginTop="24dp"
                 android:text="Наивная модель"
+                app:layout_constraintEnd_toStartOf="@+id/successSimpleFactor"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/mlTitle">
 
@@ -253,6 +288,7 @@
                 android:id="@+id/successSimpleFactor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:text="50%"
                 app:layout_constraintBottom_toBottomOf="@+id/simpleTitle"
                 app:layout_constraintStart_toStartOf="@+id/guideline2"
@@ -266,6 +302,16 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 app:layout_constraintGuide_percent="0.45" />
+
+            <ProgressBar
+                android:id="@+id/assessmentProgress"
+                style="@android:style/Widget.ProgressBar.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
