@@ -4,10 +4,8 @@ import androidx.lifecycle.*
 import com.gribanskij.predictor.Event
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DefaultRepository
-import com.gribanskij.predictor.data.source.SimpleStock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
-import java.util.*
 import javax.inject.Inject
 
 
@@ -16,34 +14,59 @@ class StockViewModel @Inject constructor(
     private val rep: DefaultRepository
 ) : ViewModel() {
 
-    private val input = MutableLiveData<StockData>()
+    private val input = MutableLiveData<Pair<String, Long>>()
 
 
     //сообщения
     val updateStatus = input.distinctUntilChanged().switchMap { stock ->
-        rep.observeUpdateStatus(stock.name, stock.date).map {
+        rep.observeUpdateStatus(stock.first, stock.second).map {
             Event(it)
         }.asLiveData()
     }
 
     //данные по торгам с Мос.Биржи
     val stockData = input.distinctUntilChanged().switchMap { stock ->
-        rep.observeStockData(stock.name, stock.date).asLiveData()
+        rep.observeStockData(stock.first, stock.second).map { r ->
+            when (r) {
+
+                is Result.Success -> {
+                    Result.Success(r.data.map { s ->
+                        Pair(s.tradeDate, s.priceClose)
+                    }
+                    )
+                }
+                is Result.Error -> {
+                    r
+                }
+                is Result.Loading -> {
+                    r
+                }
+            }
+        }.asLiveData()
     }
 
     //данные предсказанные ML
-    val predictData: LiveData<Result<List<SimpleStock>>> =
-        input.distinctUntilChanged().switchMap { stock ->
-            rep.observePredictData(stock.name, stock.date).asLiveData()
-        }
+    val predictData = input.distinctUntilChanged().switchMap { stock ->
+        rep.observePredictData(stock.first, stock.second).map { r ->
+            when (r) {
 
-    //задаем название акции.
-    fun setStock(stock: StockData) {
-        input.value = stock
+                is Result.Success -> {
+                    Result.Success(r.data.map { s ->
+                        Pair(s.tradeDate, s.value)
+                    }
+                    )
+                }
+                is Result.Error -> {
+                    r
+                }
+                is Result.Loading -> {
+                    r
+                }
+            }
+        }.asLiveData()
     }
 
-    data class StockData(
-        val name: String,
-        val date: Date
-    )
+    fun setStock(stockName: String, date: Long) {
+        input.value = Pair(stockName, date)
+    }
 }

@@ -30,10 +30,10 @@ class DateMaker @Inject constructor() {
     //возвращает список дат - рабочих дней ММВБ. Количесвто дат определяется dayNum.
     //startDate - дата до котороый нужны рабочие дни ММВБ в заданом количестве
     @Synchronized
-    fun getPrevWorkDate(dayNum: Int, startDate: Date): List<String> {
+    fun getPrevWorkDate(dayNum: Int, startDate: Long): List<String> {
         val resultListDate = mutableListOf<String>()
         val calendar = Calendar.getInstance(timeZone, locale)
-        calendar.time = startDate
+        calendar.time = Date(startDate)
 
 
         //val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -71,17 +71,17 @@ class DateMaker @Inject constructor() {
     //возвращает список дат - рабочих дней ММВБ. Количесвто дат определяется dayNum.
     //startDate - дата c котороый нужны рабочие дни ММВБ в заданом количестве
     @Synchronized
-    fun getFutureWorkDate(dayNum: Int, startDate: Date): List<String> {
+    fun getFutureWorkDate(dayNum: Int, startDate: Long): List<String> {
         val resultListDate = mutableListOf<String>()
         val calendar = Calendar.getInstance(timeZone, locale)
-        calendar.time = startDate
+        calendar.time = Date(startDate)
 
 
         //val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
         //if (currentHour < MMVB_END_TIME) calendar.add(Calendar.DAY_OF_MONTH, -1)
 
         //начинаем с следующего дня относительно текущего
-        calendar.add(Calendar.DAY_OF_MONTH, 1)
+        //calendar.add(Calendar.DAY_OF_MONTH, 1)
 
         do {
 

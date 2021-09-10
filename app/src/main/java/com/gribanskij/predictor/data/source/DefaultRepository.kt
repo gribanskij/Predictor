@@ -8,7 +8,6 @@ import com.gribanskij.predictor.di.ViewModelModule
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
-import java.util.*
 import javax.inject.Inject
 
 //количество точек на вход модели
@@ -32,7 +31,7 @@ class DefaultRepository @Inject constructor(
 
     override fun observePredictData(
         stockName: String,
-        date: Date
+        date: Long
     ): Flow<Result<List<SimpleStock>>> {
         val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
         val sDate = interval.last()
@@ -66,7 +65,7 @@ class DefaultRepository @Inject constructor(
 
     }
 
-    override fun observeStockData(stockName: String, date: Date): Flow<Result<List<Stock>>> {
+    override fun observeStockData(stockName: String, date: Long): Flow<Result<List<Stock>>> {
 
         val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
         val sDate = interval.last()
@@ -81,7 +80,7 @@ class DefaultRepository @Inject constructor(
     }
 
 
-    override fun observeUpdateStatus(stockName: String, date: Date): Flow<Result<List<Stock>>> {
+    override fun observeUpdateStatus(stockName: String, date: Long): Flow<Result<List<Stock>>> {
 
         return flow {
             val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)

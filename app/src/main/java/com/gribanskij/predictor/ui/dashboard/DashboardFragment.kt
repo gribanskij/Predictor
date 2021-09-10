@@ -1,6 +1,9 @@
 package com.gribanskij.predictor.ui.dashboard
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -23,12 +26,32 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     private val tabNames =
         mapOf(0 to SBER_NAME, 1 to YAND_NAME, 2 to GAZPROM_NAME, 3 to LUKOIL_NAME, 4 to ROSN_NAME)
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.visit_memu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                initTab()
+                true
+            }
+            else -> false
+        }
+    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentDashboardBinding.bind(view)
         initTab()
-
 
     }
 

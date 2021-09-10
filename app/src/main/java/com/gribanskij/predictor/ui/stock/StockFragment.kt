@@ -3,6 +3,7 @@ package com.gribanskij.predictor.ui.stock
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.github.mikephil.charting.components.AxisBase
@@ -13,11 +14,10 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.Result
-import com.gribanskij.predictor.data.source.SimpleStock
-import com.gribanskij.predictor.data.source.local.entities.Stock
 import com.gribanskij.predictor.databinding.FragmentStockBinding
 import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_NAME
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,19 +27,24 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
     private val binding get() = _binding!!
     private val model: StockViewModel by viewModels()
 
-    private val historyDataSet = mutableListOf<Stock>()
-    private val predictDataSet = mutableListOf<SimpleStock>()
+    private val historyDataSet = mutableListOf<Pair<String, Float>>()
+    private val predictDataSet = mutableListOf<Pair<String, Float>>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-
-            val stock = StockViewModel.StockData(
-                name = it.getString(ARG_STOCK_NAME, "?"),
-                date = Date()
+            val calendar = Calendar.getInstance().apply {
+                time = Date()
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            model.setStock(
+                stockName = it.getString(ARG_STOCK_NAME, "?"),
+                date = calendar.timeInMillis
             )
-            model.setStock(stock)
         }
     }
 
@@ -87,9 +92,15 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                 is Result.Success -> {
                     historyDataSet.clear()
                     historyDataSet.addAll(it.data)
+                    historyDataSet.lastOrNull()?.let { price ->
+                        showHistoryPrice(price)
+                        showTrend()
+                        updateStatus()
+                    }
+
                     if (binding.dataToggle.isChecked) {
                         binding.chartProgress.visibility = View.INVISIBLE
-                        showHistoryDataChart(historyDataSet)
+                        showDataChart(historyDataSet)
                     }
                 }
                 is Result.Error -> {
@@ -108,9 +119,15 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                 is Result.Success -> {
                     predictDataSet.clear()
                     predictDataSet.addAll(it.data)
+                    predictDataSet.firstOrNull()?.let { price ->
+                        showPredictPrice(price)
+                        showTrend()
+                    }
+
+
                     if (!binding.dataToggle.isChecked) {
                         binding.chartProgress.visibility = View.INVISIBLE
-                        showPredictDataChart(predictDataSet)
+                        showDataChart(predictDataSet)
                     }
                 }
                 is Result.Error -> {
@@ -125,87 +142,130 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
 
         binding.dataToggle.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                showHistoryDataChart(historyDataSet)
+                showDataChart(historyDataSet)
             } else {
-                showPredictDataChart(predictDataSet)
+                showDataChart(predictDataSet)
             }
         }
     }
 
 
-    private fun showHistoryDataChart(data: List<Stock>) {
-
-
+    private fun showDataChart(data: List<Pair<String, Float>>) {
         val dataSet = mutableListOf<Entry>()
-
         for ((i, element) in data.withIndex()) {
-            val item = Entry(i.toFloat(), element.priceClose)
+            val item = Entry(i.toFloat(), element.second)
             dataSet.add(item)
         }
+        val lDataSet = LineDataSet(dataSet, null)
 
-        val label = arguments?.getString(ARG_STOCK_NAME, "?")
-        val lDataSet = LineDataSet(dataSet, label)
-        lDataSet.color = R.color.black
-        lDataSet.setCircleColor(R.color.black)
 
-        binding.dataChart.xAxis.valueFormatter = StockXAxisFormatter(data)
+
+        lDataSet.setCircleColor(resources.getColor(R.color.orange_300))
+
+        //lDataSet.setColors(intArrayOf(R.color.orange_300,R.color.orange_300,R.color.orange_300),requireContext())
+        lDataSet.fillColor = resources.getColor(R.color.orange_300)
+
+
+        lDataSet.color = resources.getColor(R.color.orange_300)
+
+
+
+        lDataSet.setDrawFilled(true)
+
+        binding.dataChart.xAxis.valueFormatter = XAxisFormatter(data)
         binding.dataChart.data = LineData(lDataSet)
-        binding.dataChart.invalidate()
-
-    }
-
-    private fun showPredictDataChart(data: List<SimpleStock>) {
 
 
-        val dataSet = mutableListOf<Entry>()
-
-        for ((i, element) in data.withIndex()) {
-            val item = Entry(i.toFloat(), element.value)
-            dataSet.add(item)
-        }
-
-        val label = arguments?.getString(ARG_STOCK_NAME, "?")
-        val lDataSet = LineDataSet(dataSet, label)
-
-        lDataSet.color = R.color.teal_200
-        lDataSet.setCircleColor(R.color.teal_200)
-
-        binding.dataChart.xAxis.valueFormatter = PredictXAxisFormatter(data)
-        binding.dataChart.data = LineData(lDataSet)
         binding.dataChart.invalidate()
 
     }
 
     private fun chartInit() {
-
         binding.dataChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-        //binding.historyChart.xAxis.labelRotationAngle = 45.0f
         binding.dataChart.axisRight.setDrawLabels(false)
         binding.dataChart.axisLeft.setDrawLabels(false)
+        binding.dataChart.setBackgroundColor(resources.getColor(R.color.white))
+        binding.dataChart.description = null
+        //binding.dataChart.setDrawGridBackground(false)
+        binding.dataChart.setDrawBorders(false)
+        binding.dataChart.setTouchEnabled(false)
+        binding.dataChart.isDoubleTapToZoomEnabled = false
+        binding.dataChart.setScaleEnabled(false)
+        binding.dataChart.axisLeft.setDrawGridLines(false)
+        binding.dataChart.axisLeft.setDrawAxisLine(false)
 
-        //binding.modelChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-        //binding.modelChart.axisRight.setDrawLabels(false)
-        //binding.modelChart.axisLeft.setDrawLabels(false)
+        binding.dataChart.axisRight.setDrawGridLines(false)
+        binding.dataChart.axisRight.setDrawAxisLine(false)
+        binding.dataChart.xAxis.setDrawGridLines(false)
+        binding.dataChart.xAxis.setDrawAxisLine(false)
+
+
+
+        binding.dataChart.legend.isEnabled = false
 
     }
 
-    class StockXAxisFormatter(private val stockList: List<Stock>) : ValueFormatter() {
-        private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        private val nDateFormatter = SimpleDateFormat("EEE, d", Locale.getDefault())
+    private fun showHistoryPrice(currentData: Pair<String, Float>) {
+        binding.historyProgress.visibility = View.INVISIBLE
+        val textPrice = formatPrice(currentData.second)
+        binding.historyPrice.text = textPrice
+        binding.closeDate.text = formatDatePrice(currentData.first)
+    }
 
-        override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-            val dateString = stockList[value.toInt()].tradeDate
-            val date = dateFormatter.parse(dateString)
-            return nDateFormatter.format(date!!)
+    private fun showPredictPrice(currentData: Pair<String, Float>) {
+
+        binding.predictProgress.visibility = View.INVISIBLE
+        val textPrice = formatPrice(currentData.second)
+        binding.predictPrice.text = textPrice
+        binding.predictDate.text = formatDatePrice(currentData.first)
+    }
+
+    private fun formatPrice(value: Float): String {
+        val numFormatter = NumberFormat.getInstance().apply {
+            minimumFractionDigits = 2
+            maximumFractionDigits = 2
+        }
+        return "${numFormatter.format(value)} \u20BD"
+    }
+
+
+    private fun formatDatePrice(date: String): String {
+        val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val outputFormatter = SimpleDateFormat("EEE, d MMM yyyy", Locale.getDefault())
+        val tempDate = inputFormatter.parse(date)
+        return outputFormatter.format(tempDate)
+
+    }
+
+    private fun showTrend() {
+        if (historyDataSet.lastOrNull() != null && predictDataSet.firstOrNull() != null) {
+            val img = if ((historyDataSet.last().second - predictDataSet.first().second) > 0)
+                AppCompatResources.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_trending_down_24
+                ) else AppCompatResources.getDrawable(
+                requireContext(),
+                R.drawable.ic_trending_up_24
+            )
+            binding.priceTrend.setImageDrawable(img)
+            binding.priceTrend.visibility = View.VISIBLE
+        } else {
+            binding.priceTrend.visibility = View.INVISIBLE
         }
     }
 
-    class PredictXAxisFormatter(private val stockList: List<SimpleStock>) : ValueFormatter() {
+    private fun updateStatus() {
+        val nDateFormatter = SimpleDateFormat("EEE, d MMM yyyy HH:mm", Locale.getDefault())
+        binding.dateUpdate.text = nDateFormatter.format(Date())
+
+    }
+
+    class XAxisFormatter(private val stockList: List<Pair<String, Float>>) : ValueFormatter() {
         private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         private val nDateFormatter = SimpleDateFormat("EEE, d", Locale.getDefault())
 
         override fun getAxisLabel(value: Float, axis: AxisBase?): String {
-            val dateString = stockList[value.toInt()].tradeDate
+            val dateString = stockList[value.toInt()].first
             val date = dateFormatter.parse(dateString)
             return nDateFormatter.format(date!!)
         }
