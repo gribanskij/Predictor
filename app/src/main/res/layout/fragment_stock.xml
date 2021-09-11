@@ -209,6 +209,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:background="@drawable/toggle_button_background"
+                    android:textColor="@color/gray"
                     android:textOff="Прогноз"
                     android:textOn="История"
                     app:layout_constraintStart_toStartOf="parent"
