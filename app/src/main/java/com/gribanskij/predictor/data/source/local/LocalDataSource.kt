@@ -33,6 +33,4 @@ class LocalDataSource @Inject constructor(
             stockDAO.saveStock(it)
         }
     }
-
-
 }

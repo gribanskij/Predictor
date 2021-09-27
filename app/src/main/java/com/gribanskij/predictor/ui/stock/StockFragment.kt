@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.github.mikephil.charting.components.AxisBase
@@ -63,19 +64,19 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                 when (e) {
 
                     is Result.Success -> {
-                        Toast.makeText(requireContext(), "Данные обновлены", Toast.LENGTH_LONG)
-                            .show()
+                        //Toast.makeText(requireContext(), "Данные обновлены", Toast.LENGTH_SHORT)
+                        //    .show()
                     }
                     is Result.Loading -> {
                         Toast.makeText(
                             requireContext(),
                             "Загрузка актуальных данных",
-                            Toast.LENGTH_LONG
+                            Toast.LENGTH_SHORT
                         ).show()
 
                     }
                     is Result.Error -> {
-                        //binding.progress.visibility = View.INVISIBLE
+                        hideAllProgressAndTend()
                         Toast.makeText(
                             requireContext(),
                             e.exception.localizedMessage,
@@ -86,12 +87,13 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
             }
         })
 
-        model.stockData.observe(viewLifecycleOwner, {
+        model.historyStockData.observe(viewLifecycleOwner, {
 
             when (it) {
                 is Result.Success -> {
                     historyDataSet.clear()
                     historyDataSet.addAll(it.data)
+                    //последнее значение в списке - текущее число
                     historyDataSet.lastOrNull()?.let { price ->
                         showHistoryPrice(price)
                         showTrend()
@@ -112,13 +114,14 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
             }
         })
 
-        model.predictData.observe(viewLifecycleOwner, {
+        model.predictStockData.observe(viewLifecycleOwner, {
 
             when (it) {
 
                 is Result.Success -> {
                     predictDataSet.clear()
                     predictDataSet.addAll(it.data)
+                    //
                     predictDataSet.firstOrNull()?.let { price ->
                         showPredictPrice(price)
                         showTrend()
@@ -150,6 +153,16 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
     }
 
 
+    private fun hideAllProgressAndTend() {
+        binding.chartProgress.visibility = View.INVISIBLE
+        binding.historyProgress.visibility = View.INVISIBLE
+        binding.historyProgress.visibility = View.INVISIBLE
+        binding.predictProgress.visibility = View.INVISIBLE
+        binding.priceTrend.visibility = View.INVISIBLE
+
+    }
+
+
     private fun showDataChart(data: List<Pair<String, Float>>) {
         val dataSet = mutableListOf<Entry>()
         for ((i, element) in data.withIndex()) {
@@ -157,50 +170,30 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
             dataSet.add(item)
         }
         val lDataSet = LineDataSet(dataSet, null)
-
-
-
-        lDataSet.setCircleColor(resources.getColor(R.color.orange_300))
-
-        //lDataSet.setColors(intArrayOf(R.color.orange_300,R.color.orange_300,R.color.orange_300),requireContext())
-        lDataSet.fillColor = resources.getColor(R.color.orange_300)
-
-
-        lDataSet.color = resources.getColor(R.color.orange_300)
-
-
-
+        lDataSet.setCircleColor(ContextCompat.getColor(requireContext(), R.color.orange_300))
+        lDataSet.fillColor = ContextCompat.getColor(requireContext(), R.color.orange_300)
+        lDataSet.color = ContextCompat.getColor(requireContext(), R.color.orange_300)
         lDataSet.setDrawFilled(true)
-
         binding.dataChart.xAxis.valueFormatter = XAxisFormatter(data)
         binding.dataChart.data = LineData(lDataSet)
-
-
         binding.dataChart.invalidate()
-
     }
 
     private fun chartInit() {
         binding.dataChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         binding.dataChart.axisRight.setDrawLabels(false)
         binding.dataChart.axisLeft.setDrawLabels(false)
-        binding.dataChart.setBackgroundColor(resources.getColor(R.color.white))
         binding.dataChart.description = null
-        //binding.dataChart.setDrawGridBackground(false)
         binding.dataChart.setDrawBorders(false)
         binding.dataChart.setTouchEnabled(false)
         binding.dataChart.isDoubleTapToZoomEnabled = false
         binding.dataChart.setScaleEnabled(false)
         binding.dataChart.axisLeft.setDrawGridLines(false)
         binding.dataChart.axisLeft.setDrawAxisLine(false)
-
         binding.dataChart.axisRight.setDrawGridLines(false)
         binding.dataChart.axisRight.setDrawAxisLine(false)
         binding.dataChart.xAxis.setDrawGridLines(false)
         binding.dataChart.xAxis.setDrawAxisLine(false)
-
-
-
         binding.dataChart.legend.isEnabled = false
 
     }
@@ -213,7 +206,6 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
     }
 
     private fun showPredictPrice(currentData: Pair<String, Float>) {
-
         binding.predictProgress.visibility = View.INVISIBLE
         val textPrice = formatPrice(currentData.second)
         binding.predictPrice.text = textPrice
@@ -238,20 +230,34 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
     }
 
     private fun showTrend() {
-        if (historyDataSet.lastOrNull() != null && predictDataSet.firstOrNull() != null) {
-            val img = if ((historyDataSet.last().second - predictDataSet.first().second) > 0)
-                AppCompatResources.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_trending_down_24
-                ) else AppCompatResources.getDrawable(
-                requireContext(),
-                R.drawable.ic_trending_up_24
-            )
-            binding.priceTrend.setImageDrawable(img)
-            binding.priceTrend.visibility = View.VISIBLE
-        } else {
-            binding.priceTrend.visibility = View.INVISIBLE
+
+        when (isTrendUp()) {
+            true -> {
+                val img = AppCompatResources.getDrawable(
+                    requireContext(), R.drawable.ic_trending_up_24
+                )
+                binding.priceTrend.setImageDrawable(img)
+                binding.priceTrend.visibility = View.VISIBLE
+            }
+            false -> {
+                val img = AppCompatResources.getDrawable(
+                    requireContext(), R.drawable.ic_trending_down_24
+                )
+                binding.priceTrend.setImageDrawable(img)
+                binding.priceTrend.visibility = View.VISIBLE
+            }
+            else -> {
+                binding.priceTrend.visibility = View.INVISIBLE
+            }
         }
+    }
+
+    private fun isTrendUp(): Boolean? {
+        var result: Boolean? = null
+        if (historyDataSet.lastOrNull() != null && predictDataSet.firstOrNull() != null) {
+            result = (historyDataSet.last().second - predictDataSet.first().second) <= 0
+        }
+        return result
     }
 
     private fun updateStatus() {

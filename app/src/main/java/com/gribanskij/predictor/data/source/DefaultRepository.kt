@@ -33,24 +33,26 @@ class DefaultRepository @Inject constructor(
         stockName: String,
         date: Long
     ): Flow<Result<List<SimpleStock>>> {
-        val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
-        val sDate = interval.last()
-        val eDate = interval.first()
+        val lastWorkDates = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
+        val sDate = lastWorkDates.last()
+        val eDate = lastWorkDates.first()
+        val numDates = lastWorkDates.size
+
         predictor.init(stockName)
 
         return localDataS.observeStockData(stockName, sDate, eDate).distinctUntilChanged()
             .map { data ->
 
                 //начинаем расчет только когда достаточно входных данных
-                if (data.size == INPUT_NUM_DAYS) {
+                if (data.size == numDates) {
 
-                    val predictData = mutableListOf<SimpleStock>()
                     val input = mutableListOf<Float>()
                     input.addAll(data.map { it.priceClose })
 
-                    val futureDates = dateMaker.getFutureWorkDate(INPUT_NUM_DAYS, date)
+                    val futureWorkDates = dateMaker.getFutureWorkDate(INPUT_NUM_DAYS, date)
+                    val predictData = mutableListOf<SimpleStock>()
 
-                    futureDates.forEach {
+                    futureWorkDates.forEach {
                         val res = predictor.doInference(input.toFloatArray())
                         input.removeFirst()
                         input.add(res)
@@ -67,12 +69,13 @@ class DefaultRepository @Inject constructor(
 
     override fun observeStockData(stockName: String, date: Long): Flow<Result<List<Stock>>> {
 
-        val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
-        val sDate = interval.last()
-        val eDate = interval.first()
+        val lastWorkDates = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
+        val sDate = lastWorkDates.last()
+        val eDate = lastWorkDates.first()
+        val numDates = lastWorkDates.size
 
         return localDataS.observeStockData(stockName, sDate, eDate).distinctUntilChanged().map {
-            if (it.size == INPUT_NUM_DAYS) Result.Success(it)
+            if (it.size == numDates) Result.Success(it)
             else {
                 Result.Loading
             }
@@ -83,37 +86,58 @@ class DefaultRepository @Inject constructor(
     override fun observeUpdateStatus(stockName: String, date: Long): Flow<Result<List<Stock>>> {
 
         return flow {
-            val interval = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
-            val sDate = interval.last()
-            val eDate = interval.first()
-            val res = localDataS.getStockData(stockName, sDate, eDate) as Result.Success
+            val lastWorkDates = dateMaker.getPrevWorkDate(INPUT_NUM_DAYS, date)
+            val sDate = lastWorkDates.last()
+            val eDate = lastWorkDates.first()
+            val numDates = lastWorkDates.size
 
-            if (res.data.size != INPUT_NUM_DAYS) {
-                when (val result = remoteDataS.getStockData(stockName, sDate, eDate)) {
+            when (val localData = localDataS.getStockData(stockName, sDate, eDate)) {
 
-                    is Result.Success -> {
-                        localDataS.saveData(result.data)
-                        emit(result)
-
-                        /*
-                        if(res.data.size == INPUT_NUM_DAYS){
-                            localDataS.saveData(result.data)
-                            emit(result)
-                        } else {
-                            emit(Result.Error(Exception("Данные не доступны")))
-                        }
-
-                         */
-
-                    }
-                    is Result.Error -> {
-                        emit(result)
-                    }
-
-                    is Result.Loading -> {
-                        emit(result)
+                is Result.Success -> {
+                    if (localData.data.size != numDates) {
+                        val status = loadUpdate(stockName, sDate, eDate, numDates)
+                        emit(status)
+                    } else {
+                        emit(localData)
                     }
                 }
+
+                is Result.Error -> {
+                    emit(localData)
+                }
+
+                else -> {
+                    emit(Result.Error(Exception("Ошибка загрузки данных!")))
+                }
+            }
+        }
+    }
+
+    private suspend fun loadUpdate(
+        stockName: String,
+        startDate: String,
+        stopDate: String,
+        needDataSize: Int
+    ): Result<List<Stock>> {
+
+
+        return when (val resultFromWeb = remoteDataS.getStockData(stockName, startDate, stopDate)) {
+
+            is Result.Success -> {
+
+                if (resultFromWeb.data.size == needDataSize) {
+                    localDataS.saveData(resultFromWeb.data)
+                    Result.Success(listOf())
+                } else {
+                    Result.Error(Exception("Данные не доступны в данный момент"))
+                }
+            }
+            is Result.Error -> {
+                resultFromWeb
+            }
+
+            else -> {
+                Result.Error(Exception("Не допустимый статус!"))
             }
         }
     }

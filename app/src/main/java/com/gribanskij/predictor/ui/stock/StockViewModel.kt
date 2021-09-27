@@ -1,6 +1,9 @@
 package com.gribanskij.predictor.ui.stock
 
-import androidx.lifecycle.*
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.switchMap
 import com.gribanskij.predictor.Event
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.source.DefaultRepository
@@ -16,16 +19,18 @@ class StockViewModel @Inject constructor(
 
     private val input = MutableLiveData<Pair<String, Long>>()
 
+    private var inputDate: Long? = null
+
 
     //сообщения
-    val updateStatus = input.distinctUntilChanged().switchMap { stock ->
+    val updateStatus = input.switchMap { stock ->
         rep.observeUpdateStatus(stock.first, stock.second).map {
             Event(it)
         }.asLiveData()
     }
 
     //данные по торгам с Мос.Биржи
-    val stockData = input.distinctUntilChanged().switchMap { stock ->
+    val historyStockData = input.switchMap { stock ->
         rep.observeStockData(stock.first, stock.second).map { r ->
             when (r) {
 
@@ -46,7 +51,7 @@ class StockViewModel @Inject constructor(
     }
 
     //данные предсказанные ML
-    val predictData = input.distinctUntilChanged().switchMap { stock ->
+    val predictStockData = input.switchMap { stock ->
         rep.observePredictData(stock.first, stock.second).map { r ->
             when (r) {
 
@@ -66,7 +71,11 @@ class StockViewModel @Inject constructor(
         }.asLiveData()
     }
 
+    //date - дата без часов, минут, секунд
     fun setStock(stockName: String, date: Long) {
-        input.value = Pair(stockName, date)
+        if (inputDate != date) {
+            inputDate = date
+            input.value = Pair(stockName, date)
+        }
     }
 }

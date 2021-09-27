@@ -124,7 +124,6 @@ class RemoteDataSource @Inject constructor(
             } catch (ex: Exception) {
                 outResult = Result.Error(ex)
             }
-
             return@withContext outResult
         }
 

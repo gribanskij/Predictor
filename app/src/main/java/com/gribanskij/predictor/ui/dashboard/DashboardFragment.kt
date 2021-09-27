@@ -70,7 +70,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     }
 
 
-    class StockAdapter(fragment: Fragment, val names: Map<Int, String>) :
+    class StockAdapter(fragment: Fragment, private val names: Map<Int, String>) :
         FragmentStateAdapter(fragment) {
 
         override fun getItemCount(): Int = names.size

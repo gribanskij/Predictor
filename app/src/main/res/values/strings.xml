@@ -5,7 +5,11 @@
     <string name="nav_header_title">Stock Predictor</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
-
+    <string name="textOff">Forecast</string>
+    <string name="textOn">History</string>
+    <string name="price_close">Closing price</string>
+    <string name="price_predict">Price forecast</string>
+    <string name="date_update">Date of data update:</string>
     <string name="menu_dashboard">Dashboard</string>
     <string name="menu_about">About</string>
 
