@@ -11,7 +11,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.source.remote.*
 import com.gribanskij.predictor.databinding.FragmentDashboardBinding
-import com.gribanskij.predictor.ui.stock.StockFragment
+import com.gribanskij.predictor.ui.dashboard.stock.StockFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 

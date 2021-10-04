@@ -1,4 +1,4 @@
-package com.gribanskij.predictor.ui.stock
+package com.gribanskij.predictor.ui.dashboard.stock
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

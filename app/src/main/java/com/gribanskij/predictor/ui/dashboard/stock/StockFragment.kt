@@ -1,4 +1,4 @@
-package com.gribanskij.predictor.ui.stock
+package com.gribanskij.predictor.ui.dashboard.stock
 
 import android.os.Bundle
 import android.view.View
