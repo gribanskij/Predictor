@@ -2,7 +2,7 @@ package com.gribanskij.predictor.data.source.ml
 
 import android.content.Context
 import android.content.res.AssetFileDescriptor
-import com.gribanskij.predictor.data.source.remote.*
+import com.gribanskij.predictor.data.StockModel
 import kotlinx.coroutines.CoroutineDispatcher
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
@@ -11,13 +11,6 @@ import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import javax.inject.Inject
-
-
-private const val SBER_FILE_NAME = "sber.tflite"
-private const val YAND_FILE_NAME = "yand.tflite"
-private const val GAZPROM_FILE_NAME = "gazp.tflite"
-private const val LUKOIL_FILE_NAME = "lkoh.tflite"
-private const val ROSN_FILE_NAME = "rosn.tflite"
 
 
 class MlPredictor @Inject constructor(
@@ -29,13 +22,15 @@ class MlPredictor @Inject constructor(
     private lateinit var tflite: Interpreter
     private var tfliteoptions: Interpreter.Options = Interpreter.Options()
     private lateinit var tflitemodel: MappedByteBuffer
+    private lateinit var mStock: StockModel
 
 
-    fun init(stockName: String) {
+    fun init(stock: StockModel) {
 
         try {
             if (!isInit) {
-                tflitemodel = loadModelfile(getModelFileName(stockName))
+                mStock = stock
+                tflitemodel = loadModelfile(stock.MODEL_NAME)
                 tfliteoptions.setNumThreads(1)
                 tflite = Interpreter(tflitemodel, tfliteoptions)
                 isInit = true
@@ -47,17 +42,6 @@ class MlPredictor @Inject constructor(
 
     }
 
-
-    private fun getModelFileName(stockName: String): String {
-        return when {
-            stockName.equals(SBER_NAME, ignoreCase = true) -> SBER_FILE_NAME
-            stockName.equals(YAND_NAME, ignoreCase = true) -> YAND_FILE_NAME
-            stockName.equals(GAZPROM_NAME, ignoreCase = true) -> GAZPROM_FILE_NAME
-            stockName.equals(LUKOIL_NAME, ignoreCase = true) -> LUKOIL_FILE_NAME
-            stockName.equals(ROSN_NAME, ignoreCase = true) -> ROSN_FILE_NAME
-            else -> SBER_FILE_NAME
-        }
-    }
 
 
     private fun loadModelfile(modelFileName: String): MappedByteBuffer {
@@ -71,10 +55,22 @@ class MlPredictor @Inject constructor(
 
 
     fun doInference(input: FloatArray): Float {
+        val scaleInput = scaledInputData(input)
         val outputVal: ByteBuffer = ByteBuffer.allocateDirect(4)
         outputVal.order(ByteOrder.nativeOrder())
-        tflite.run(input, outputVal)
+        tflite.run(scaleInput, outputVal)
         outputVal.rewind()
-        return outputVal.float
+        return scaleOutput(outputVal.float)
+    }
+
+    //Входные значений стоимости привести к масштабу 0-1
+    private fun scaledInputData(input: FloatArray): FloatArray {
+        return input.map { (it - mStock.MODEL_MIN_VALUE) / (mStock.MODEL_MAX_VALUE - mStock.MODEL_MIN_VALUE) }
+            .toFloatArray()
+
+    }
+
+    private fun scaleOutput(input: Float): Float {
+        return input * (mStock.MODEL_MAX_VALUE - mStock.MODEL_MIN_VALUE) + mStock.MODEL_MIN_VALUE
     }
 }

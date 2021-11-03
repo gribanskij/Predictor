@@ -15,8 +15,9 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.Result
+import com.gribanskij.predictor.data.StockParam
 import com.gribanskij.predictor.databinding.FragmentStockBinding
-import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_NAME
+import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_CODE
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -43,7 +44,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                 set(Calendar.MILLISECOND, 0)
             }
             model.setStock(
-                stockName = it.getString(ARG_STOCK_NAME, "?"),
+                stock = StockParam.COLLECTION.stocks[it.getInt(ARG_STOCK_CODE)]!!,
                 date = calendar.timeInMillis
             )
         }
@@ -87,6 +88,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
             }
         })
 
+        //
         model.historyStockData.observe(viewLifecycleOwner, {
 
             when (it) {

@@ -1,6 +1,7 @@
 package com.gribanskij.predictor.data.source.local
 
 import com.gribanskij.predictor.data.Result
+import com.gribanskij.predictor.data.StockModel
 import com.gribanskij.predictor.data.source.DataSource
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import kotlinx.coroutines.Dispatchers
@@ -13,19 +14,19 @@ class LocalDataSource @Inject constructor(
 ) : DataSource {
 
     override suspend fun getStockData(
-        stockName: String,
+        stock: StockModel,
         sDate: String,
         eDate: String
     ): Result<List<Stock>> {
-        return Result.Success(stockDAO.getStockData(stockName, sDate, eDate))
+        return Result.Success(stockDAO.getStockData(stock.NAME, sDate, eDate))
     }
 
     override fun observeStockData(
-        stockName: String,
+        stock: StockModel,
         sDate: String,
         eDate: String
     ): Flow<List<Stock>> =
-        stockDAO.observeStockData(stockName, sDate, eDate)
+        stockDAO.observeStockData(stock.NAME, sDate, eDate)
 
 
     override suspend fun saveData(stock: List<Stock>) = withContext(Dispatchers.IO) {

@@ -6,6 +6,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import com.gribanskij.predictor.Event
 import com.gribanskij.predictor.data.Result
+import com.gribanskij.predictor.data.StockModel
 import com.gribanskij.predictor.data.source.DefaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
@@ -17,7 +18,7 @@ class StockViewModel @Inject constructor(
     private val rep: DefaultRepository
 ) : ViewModel() {
 
-    private val input = MutableLiveData<Pair<String, Long>>()
+    private val input = MutableLiveData<Pair<StockModel, Long>>()
 
     private var inputDate: Long? = null
 
@@ -72,10 +73,10 @@ class StockViewModel @Inject constructor(
     }
 
     //date - дата без часов, минут, секунд
-    fun setStock(stockName: String, date: Long) {
+    fun setStock(stock: StockModel, date: Long) {
         if (inputDate != date) {
             inputDate = date
-            input.value = Pair(stockName, date)
+            input.value = Pair(stock, date)
         }
     }
 }
