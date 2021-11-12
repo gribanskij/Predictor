@@ -35,7 +35,6 @@ class DefaultRepository @Inject constructor(
         val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, date)
         val sDate = lastWorkDates.last()
         val eDate = lastWorkDates.first()
-        val numDates = lastWorkDates.size
 
         predictor.init(stock)
 
@@ -43,10 +42,14 @@ class DefaultRepository @Inject constructor(
             .map { data ->
 
                 //начинаем расчет только когда достаточно входных данных
-                if (data.size == numDates) {
+                if (data.size >= stock.MODEL_INPUT) {
+
+                    val firstIndex = data.size - stock.MODEL_INPUT
+                    val lastIndex = data.size
+                    val lastData = data.subList(firstIndex, lastIndex)
 
                     val input = mutableListOf<Float>()
-                    input.addAll(data.map { it.priceClose })
+                    input.addAll(lastData.map { it.priceClose })
 
                     val futureWorkDates = dateMaker.getFutureWorkDate(stock.MODEL_INPUT, date)
                     val predictData = mutableListOf<SimpleStock>()
@@ -71,11 +74,13 @@ class DefaultRepository @Inject constructor(
         val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, date)
         val sDate = lastWorkDates.last()
         val eDate = lastWorkDates.first()
-        val numDates = lastWorkDates.size
 
         return localDataS.observeStockData(stock, sDate, eDate).distinctUntilChanged().map {
-            if (it.size == numDates) Result.Success(it)
-            else {
+            if (it.size >= stock.MODEL_INPUT) {
+                val firstIndex = it.size - stock.MODEL_INPUT
+                val lastIndex = it.size
+                Result.Success(it.subList(firstIndex, lastIndex))
+            } else {
                 Result.Loading
             }
         }
@@ -93,7 +98,7 @@ class DefaultRepository @Inject constructor(
             when (val localData = localDataS.getStockData(stock, sDate, eDate)) {
 
                 is Result.Success -> {
-                    if (localData.data.size != numDates) {
+                    if (localData.data.size < stock.MODEL_INPUT) {
                         val status = loadUpdate(stock, sDate, eDate, numDates)
                         emit(status)
                     } else {
@@ -124,7 +129,7 @@ class DefaultRepository @Inject constructor(
 
             is Result.Success -> {
 
-                if (resultFromWeb.data.size == needDataSize) {
+                if (resultFromWeb.data.size >= stock.MODEL_INPUT) {
                     localDataS.saveData(resultFromWeb.data)
                     Result.Success(listOf())
                 } else {

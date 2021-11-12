@@ -7,11 +7,12 @@
     <string name="textOn">History</string>
     <string name="price_close">Closing price</string>
     <string name="price_predict">Price forecast</string>
-    <string name="date_update">Date of data update:</string>
+    <string name="date_update">Date of update:</string>
     <string name="menu_dashboard">Dashboard</string>
     <string name="menu_about">About</string>
     <string name="version">Version:</string>
     <string name="developer_name">Developer: Dmitrij Gribanskiy</string>
-    <string name="email">gribanskij1979@gmail.com</string>
+    <string name="email" translatable="false">gribanskij1979@gmail.com</string>
+    <string name="msg_load_data">Loading current data</string>
 
 </resources>

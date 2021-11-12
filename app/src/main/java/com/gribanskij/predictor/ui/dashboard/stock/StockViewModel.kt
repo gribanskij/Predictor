@@ -19,7 +19,6 @@ class StockViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val input = MutableLiveData<Pair<StockModel, Long>>()
-
     private var inputDate: Long? = null
 
 
@@ -34,7 +33,6 @@ class StockViewModel @Inject constructor(
     val historyStockData = input.switchMap { stock ->
         rep.observeStockData(stock.first, stock.second).map { r ->
             when (r) {
-
                 is Result.Success -> {
                     Result.Success(r.data.map { s ->
                         Pair(s.tradeDate, s.priceClose)

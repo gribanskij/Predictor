@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Предсказатель</string>
+    <string name="nav_header_title">Stock Predictor</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Настройки</string>
+    <string name="textOff">Прогноз</string>
+    <string name="textOn">История</string>
+    <string name="price_close">Цена закрытия</string>
+    <string name="price_predict">Прогноз цены</string>
+    <string name="date_update">Дата обновления:</string>
+    <string name="menu_dashboard">Обзор</string>
+    <string name="menu_about">О программе</string>
+    <string name="version">Версия:</string>
+    <string name="developer_name">Разработчик: Дмитрий Грибанский</string>
+    <string name="msg_load_data">Загрузка актуальных данных</string>
+</resources>

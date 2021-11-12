@@ -71,13 +71,13 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                     is Result.Loading -> {
                         Toast.makeText(
                             requireContext(),
-                            "Загрузка актуальных данных",
+                            getString(R.string.msg_load_data),
                             Toast.LENGTH_SHORT
                         ).show()
 
                     }
                     is Result.Error -> {
-                        hideAllProgressAndTend()
+                        hideAllProgressAndTrend()
                         Toast.makeText(
                             requireContext(),
                             e.exception.localizedMessage,
@@ -88,7 +88,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
             }
         })
 
-        //
+        //исторические данные
         model.historyStockData.observe(viewLifecycleOwner, {
 
             when (it) {
@@ -116,6 +116,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
             }
         })
 
+        //предсказанные данные
         model.predictStockData.observe(viewLifecycleOwner, {
 
             when (it) {
@@ -155,7 +156,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
     }
 
 
-    private fun hideAllProgressAndTend() {
+    private fun hideAllProgressAndTrend() {
         binding.chartProgress.visibility = View.INVISIBLE
         binding.historyProgress.visibility = View.INVISIBLE
         binding.historyProgress.visibility = View.INVISIBLE
@@ -196,6 +197,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
         binding.dataChart.axisRight.setDrawAxisLine(false)
         binding.dataChart.xAxis.setDrawGridLines(false)
         binding.dataChart.xAxis.setDrawAxisLine(false)
+        binding.dataChart.xAxis.granularity = 1f
         binding.dataChart.legend.isEnabled = false
 
     }

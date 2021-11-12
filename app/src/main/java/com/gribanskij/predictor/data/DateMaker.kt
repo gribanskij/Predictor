@@ -6,9 +6,6 @@ import java.util.*
 import javax.inject.Inject
 
 
-//время завершения работы ММВБ, часы в Москве
-const val MMVB_END_TIME = 20
-
 
 class DateMaker @Inject constructor() {
 
@@ -34,6 +31,10 @@ class DateMaker @Inject constructor() {
         val resultListDate = mutableListOf<String>()
         val calendar = Calendar.getInstance(timeZone, locale)
         calendar.time = Date(startDate)
+
+        //Добавляем 7 дней чтобы учесть ошибки когда рабочий день на самом деле выходной.
+        //и не хватит данных для последующих расчетов
+        val workDayNum = dayNum + 7
 
 
         //val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -62,7 +63,7 @@ class DateMaker @Inject constructor() {
                     calendar.add(Calendar.DAY_OF_MONTH, -1)
                 }
             }
-        } while (resultListDate.size != dayNum)
+        } while (resultListDate.size != workDayNum)
 
         return resultListDate
 
