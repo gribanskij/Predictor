@@ -14,18 +14,19 @@ class DateMaker @Inject constructor() {
     private val locale = Locale.getDefault()
 
 
-    //список выходных дней в 2021г кроме воскресенья и субботы
+    //список выходных дней мос.биржи в 2021-2022 кроме воскресенья и субботы
     private val listDayOff = listOf(
         "2021-01-01", "2021-01-04", "2021-01-05", "2021-01-06", "2021-01-07",
         "2021-01-08", "2021-02-22", "2021-02-23", "2021-03-08", "2021-05-03",
-        "2021-05-10", "2021-06-14", "2021-11-04", "2021-11-05", "2021-12-31"
+        "2021-05-10", "2021-06-14", "2021-11-04", "2021-11-05", "2021-12-31",
+        "2022-01-01", "2022-01-02", "2022-05-02"
     )
 
-    //список рабочих суббот в 2021
+    //список рабочих суббот в 2021,2022
     private val listWorkDay = listOf("2021-02-20")
 
     //возвращает список дат - рабочих дней ММВБ. Количесвто дат определяется dayNum.
-    //startDate - дата до котороый нужны рабочие дни ММВБ в заданом количестве
+    //startDate - дата до котороый нужны рабочие дни ММВБ в заданом количестве, не включая startDate
     @Synchronized
     fun getPrevWorkDate(dayNum: Int, startDate: Long): List<String> {
         val resultListDate = mutableListOf<String>()
@@ -34,7 +35,7 @@ class DateMaker @Inject constructor() {
 
         //Добавляем 7 дней чтобы учесть ошибки когда рабочий день на самом деле выходной.
         //и не хватит данных для последующих расчетов
-        val workDayNum = dayNum + 7
+        //val workDayNum = dayNum + 7
 
 
         //val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -63,7 +64,7 @@ class DateMaker @Inject constructor() {
                     calendar.add(Calendar.DAY_OF_MONTH, -1)
                 }
             }
-        } while (resultListDate.size != workDayNum)
+        } while (resultListDate.size < dayNum)
 
         return resultListDate
 
@@ -104,7 +105,7 @@ class DateMaker @Inject constructor() {
                     calendar.add(Calendar.DAY_OF_MONTH, 1)
                 }
             }
-        } while (resultListDate.size != dayNum)
+        } while (resultListDate.size < dayNum)
 
         return resultListDate
 

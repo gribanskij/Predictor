@@ -57,7 +57,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
         chartInit()
 
 
-        model.updateStatus.observe(viewLifecycleOwner, {
+        model.updateStatus.observe(viewLifecycleOwner) {
 
             val event = it.getContentIfNotHandled()
 
@@ -86,10 +86,10 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                     }
                 }
             }
-        })
+        }
 
         //исторические данные
-        model.historyStockData.observe(viewLifecycleOwner, {
+        model.historyStockData.observe(viewLifecycleOwner) {
 
             when (it) {
                 is Result.Success -> {
@@ -114,10 +114,10 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                     binding.chartProgress.visibility = View.VISIBLE
                 }
             }
-        })
+        }
 
         //предсказанные данные
-        model.predictStockData.observe(viewLifecycleOwner, {
+        model.predictStockData.observe(viewLifecycleOwner) {
 
             when (it) {
 
@@ -144,7 +144,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                 }
             }
 
-        })
+        }
 
         binding.dataToggle.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
