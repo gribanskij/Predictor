@@ -27,7 +27,7 @@ class DefaultRepository @Inject constructor(
     @Inject
     lateinit var predictor: MlPredictor
 
-
+    //предсказанные данные
     override fun observePredictData(
         stock: StockModel,
         date: Long
@@ -69,6 +69,7 @@ class DefaultRepository @Inject constructor(
 
     }
 
+    //исторические данные
     override fun observeStockData(stock: StockModel, date: Long): Flow<Result<List<Stock>>> {
 
         val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, date)

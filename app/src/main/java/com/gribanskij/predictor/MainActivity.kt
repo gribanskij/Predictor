@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mAdView: AdView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
