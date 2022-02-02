@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "620525229829",
+    "project_id": "predictor-e1a86",
+    "storage_bucket": "predictor-e1a86.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:620525229829:android:a1a09d28160c0d96f8896c",
+        "android_client_info": {
+          "package_name": "com.gribanskij.predictor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "620525229829-22ncc77ivt6pqspv242el3hsbfspbmvs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4aCHUhg25XAjMPMoKotjjM1XS2rhNoMQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "620525229829-22ncc77ivt6pqspv242el3hsbfspbmvs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

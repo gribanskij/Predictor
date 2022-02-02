@@ -22,6 +22,5 @@ class AboutFragment : Fragment(R.layout.fragment_about) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentAboutBinding.bind(view)
         binding.versionName.text = BuildConfig.VERSION_NAME
-
     }
 }
