@@ -2,7 +2,7 @@ package com.gribanskij.predictor.data.source.local
 
 import androidx.room.Dao
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy.REPLACE
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +27,7 @@ interface StockDAO {
     suspend fun getStockData(stockId: String, sDate: String, eDate: String): List<Stock>
 
 
-    @Insert(onConflict = REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun saveStock(stock: Stock)
 
 
