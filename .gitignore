@@ -17,3 +17,4 @@ local.properties
 /keystore/otcpharm-keystore.jks
 /.idea/.name
 /keystore/
+/.idea/vcs.xml
