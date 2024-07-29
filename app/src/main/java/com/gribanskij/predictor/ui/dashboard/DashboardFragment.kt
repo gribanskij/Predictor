@@ -5,7 +5,10 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayoutMediator
 import com.gribanskij.predictor.R
@@ -26,31 +29,11 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     private val binding get() = _binding!!
 
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.visit_memu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_refresh -> {
-                initTab()
-                true
-            }
-            else -> false
-        }
-    }
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentDashboardBinding.bind(view)
+        initMenu()
         initTab()
 
     }
@@ -58,6 +41,28 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+    }
+
+    private fun initMenu(){
+        val menuHost: MenuHost = requireActivity()
+
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.visit_memu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_refresh  -> {
+                        initTab()
+                        true
+                    }
+                    else -> {
+                        false
+                    }
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
 
@@ -70,7 +75,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
     }
 
 
-    class StockAdapter(fragment: Fragment, private val stocks: Map<Int, StockModel>) :
+    private class StockAdapter(fragment: Fragment, private val stocks: Map<Int, StockModel>) :
         FragmentStateAdapter(fragment) {
 
         override fun getItemCount(): Int = stocks.size
