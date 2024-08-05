@@ -15,19 +15,23 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.Result
-import com.gribanskij.predictor.data.StockParam
+import com.gribanskij.predictor.data.StockModel
 import com.gribanskij.predictor.databinding.FragmentStockBinding
-import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_CODE
+import com.gribanskij.predictor.ui.dashboard.ARG_STOCK_POSITION
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class StockFragment : Fragment(R.layout.fragment_stock) {
     private var _binding: FragmentStockBinding? = null
     private val binding get() = _binding!!
     private val model: StockViewModel by viewModels()
+
+    @Inject
+    lateinit var  stocks:List<StockModel>
 
     private val historyDataSet = mutableListOf<Pair<String, Float>>()
     private val predictDataSet = mutableListOf<Pair<String, Float>>()
@@ -44,7 +48,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                 set(Calendar.MILLISECOND, 0)
             }
             model.setStock(
-                stock = StockParam.COLLECTION.stocks[it.getInt(ARG_STOCK_CODE)]!!,
+                stock = stocks[it.getInt(ARG_STOCK_POSITION)],
                 date = calendar.timeInMillis
             )
         }

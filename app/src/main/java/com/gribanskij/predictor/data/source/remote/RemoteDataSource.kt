@@ -75,7 +75,19 @@ class RemoteDataSource @Inject constructor(
                     val id = tqbr.getString(INDEX_SECID)
                     val name = tqbr.getString(INDEX_SHORTNAME)
 
-                    val sqlId = (idFormatter.parse(tdate)?.time ?: 0) + stock.CODE
+
+                    val code = when {
+
+                        stock.NAME.contains("sb",ignoreCase = true) -> 0
+                        stock.NAME.contains("yn",ignoreCase = true) -> 1
+                        stock.NAME.contains("ga",ignoreCase = true) -> 2
+                        stock.NAME.contains("lk",ignoreCase = true) -> 3
+                        stock.NAME.contains("ro",ignoreCase = true) -> 4
+                        else -> 5
+
+                    }
+
+                    val sqlId = (idFormatter.parse(tdate)?.time ?: 0) + code
 
 
                     response.add(

@@ -13,13 +13,13 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayoutMediator
 import com.gribanskij.predictor.R
 import com.gribanskij.predictor.data.StockModel
-import com.gribanskij.predictor.data.StockParam
 import com.gribanskij.predictor.databinding.FragmentDashboardBinding
 import com.gribanskij.predictor.ui.dashboard.stock.StockFragment
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 
-const val ARG_STOCK_CODE = "stockCode"
+const val ARG_STOCK_POSITION = "stockPosition"
 
 
 @AndroidEntryPoint
@@ -27,6 +27,8 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
+    @Inject
+    lateinit var  stocks:List<StockModel>
 
 
 
@@ -68,14 +70,14 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
     private fun initTab() {
 
-        binding.pager.adapter = StockAdapter(this, StockParam.COLLECTION.stocks)
+        binding.pager.adapter = StockAdapter(this, stocks)
         TabLayoutMediator(binding.tabLayout, binding.pager) { tab, position ->
-            tab.text = StockParam.COLLECTION.stocks[position]!!.NAME
+            tab.text = stocks[position].NAME
         }.attach()
     }
 
 
-    private class StockAdapter(fragment: Fragment, private val stocks: Map<Int, StockModel>) :
+    private class StockAdapter(fragment: Fragment, private val stocks: List<StockModel>) :
         FragmentStateAdapter(fragment) {
 
         override fun getItemCount(): Int = stocks.size
@@ -83,7 +85,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
         override fun createFragment(position: Int): Fragment {
             val fragment = StockFragment()
             fragment.arguments = Bundle().apply {
-                putInt(ARG_STOCK_CODE, stocks[position]!!.CODE)
+                putInt(ARG_STOCK_POSITION, position)
             }
             return fragment
         }
