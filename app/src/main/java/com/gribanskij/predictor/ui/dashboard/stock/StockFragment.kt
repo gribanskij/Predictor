@@ -37,19 +37,13 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
     private val predictDataSet = mutableListOf<Pair<String, Float>>()
 
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            val calendar = Calendar.getInstance().apply {
-                time = Date()
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
             model.setStock(
                 stock = stocks[it.getInt(ARG_STOCK_POSITION)],
-                date = calendar.timeInMillis
             )
         }
     }

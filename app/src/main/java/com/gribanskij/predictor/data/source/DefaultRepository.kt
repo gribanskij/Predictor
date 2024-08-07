@@ -9,6 +9,8 @@ import com.gribanskij.predictor.di.ViewModelModule
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
+import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 
 
@@ -27,12 +29,20 @@ class DefaultRepository @Inject constructor(
     @Inject
     lateinit var predictor: MlPredictor
 
+
+    private val dateNow = Calendar.getInstance().apply {
+        time = Date()
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
+
     //предсказанные данные
     override fun observePredictData(
-        stock: StockModel,
-        date: Long
+        stock: StockModel
     ): Flow<Result<List<SimpleStock>>> {
-        val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, date)
+        val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, dateNow.time.time)
         val sDate = lastWorkDates.last()
         val eDate = lastWorkDates.first()
 
@@ -51,7 +61,7 @@ class DefaultRepository @Inject constructor(
                     val input = mutableListOf<Float>()
                     input.addAll(lastData.map { it.priceClose })
 
-                    val futureWorkDates = dateMaker.getFutureWorkDate(stock.MODEL_INPUT, date)
+                    val futureWorkDates = dateMaker.getFutureWorkDate(stock.MODEL_INPUT, dateNow.time.time)
                     val predictData = mutableListOf<SimpleStock>()
 
                     futureWorkDates.forEach {
@@ -70,9 +80,9 @@ class DefaultRepository @Inject constructor(
     }
 
     //исторические данные
-    override fun observeStockData(stock: StockModel, date: Long): Flow<Result<List<Stock>>> {
+    override fun observeStockData(stock: StockModel): Flow<Result<List<Stock>>> {
 
-        val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, date)
+        val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, dateNow.time.time)
         val sDate = lastWorkDates.last()
         val eDate = lastWorkDates.first()
 
@@ -88,10 +98,10 @@ class DefaultRepository @Inject constructor(
     }
 
 
-    override fun observeUpdateStatus(stock: StockModel, date: Long): Flow<Result<List<Stock>>> {
+    override fun observeUpdateStatus(stock: StockModel): Flow<Result<List<Stock>>> {
 
         return flow {
-            val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, date)
+            val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, dateNow.time.time)
             val sDate = lastWorkDates.last()
             val eDate = lastWorkDates.first()
             val numDates = lastWorkDates.size

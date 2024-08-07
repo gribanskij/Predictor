@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface Repository {
 
-    fun observePredictData(stock: StockModel, date: Long): Flow<Result<List<SimpleStock>>>
-    fun observeStockData(stock: StockModel, date: Long): Flow<Result<List<Stock>>>
-    fun observeUpdateStatus(stock: StockModel, date: Long): Flow<Result<List<Stock>>>
+    fun observePredictData(stock: StockModel): Flow<Result<List<SimpleStock>>>
+    fun observeStockData(stock: StockModel): Flow<Result<List<Stock>>>
+    fun observeUpdateStatus(stock: StockModel): Flow<Result<List<Stock>>>
 
 }

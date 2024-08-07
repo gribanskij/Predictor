@@ -27,9 +27,9 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
-    @Inject
-    lateinit var  stocks:List<StockModel>
 
+    @Inject
+    lateinit var stocks: List<StockModel>
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -45,7 +45,7 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
         _binding = null
     }
 
-    private fun initMenu(){
+    private fun initMenu() {
         val menuHost: MenuHost = requireActivity()
 
         menuHost.addMenuProvider(object : MenuProvider {
@@ -55,10 +55,11 @@ class DashboardFragment : Fragment(R.layout.fragment_dashboard) {
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
-                    R.id.action_refresh  -> {
+                    R.id.action_refresh -> {
                         initTab()
                         true
                     }
+
                     else -> {
                         false
                     }

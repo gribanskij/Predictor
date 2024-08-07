@@ -10,6 +10,8 @@ import com.gribanskij.predictor.data.StockModel
 import com.gribanskij.predictor.data.source.DefaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
+import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 
 
@@ -18,20 +20,19 @@ class StockViewModel @Inject constructor(
     private val rep: DefaultRepository
 ) : ViewModel() {
 
-    private val input = MutableLiveData<Pair<StockModel, Long>>()
-    private var inputDate: Long? = null
+    private val input = MutableLiveData<StockModel>()
 
 
     //сообщения
     val updateStatus = input.switchMap { stock ->
-        rep.observeUpdateStatus(stock.first, stock.second).map {
+        rep.observeUpdateStatus(stock).map {
             Event(it)
         }.asLiveData()
     }
 
     //данные по торгам с Мос.Биржи
     val historyStockData = input.switchMap { stock ->
-        rep.observeStockData(stock.first, stock.second).map { r ->
+        rep.observeStockData(stock).map { r ->
             when (r) {
                 is Result.Success -> {
                     Result.Success(r.data.map { s ->
@@ -51,7 +52,7 @@ class StockViewModel @Inject constructor(
 
     //данные предсказанные ML
     val predictStockData = input.switchMap { stock ->
-        rep.observePredictData(stock.first, stock.second).map { r ->
+        rep.observePredictData(stock).map { r ->
             when (r) {
 
                 is Result.Success -> {
@@ -70,11 +71,7 @@ class StockViewModel @Inject constructor(
         }.asLiveData()
     }
 
-    //date - дата без часов, минут, секунд
-    fun setStock(stock: StockModel, date: Long) {
-        if (inputDate != date) {
-            inputDate = date
-            input.value = Pair(stock, date)
-        }
+    fun setStock(stock: StockModel) {
+        if (!input.isInitialized)input.value = stock
     }
 }

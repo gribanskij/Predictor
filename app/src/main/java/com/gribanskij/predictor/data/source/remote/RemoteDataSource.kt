@@ -9,10 +9,8 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.net.URL
-import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
-
 
 
 private const val INDEX_TRADEDATE = 1
@@ -31,8 +29,6 @@ class RemoteDataSource @Inject constructor(
     private val ioDispatcher: CoroutineDispatcher
 ) : DataSource {
 
-    private val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH)
-    private val idFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
 
     override suspend fun getStockData(
         stock: StockModel,
@@ -41,16 +37,14 @@ class RemoteDataSource @Inject constructor(
     ): Result<List<Stock>> =
         withContext(ioDispatcher) {
 
-            var outResult: Result<List<Stock>> = Result.Loading
-            val response = mutableListOf<Stock>()
-            val out = StringBuilder()
+            return@withContext try {
 
-            try {
+                val response = mutableListOf<Stock>()
 
                 val fullUrl = "${stock.URL}from=${sDate}&till=$eDate"
                 val mUrl = URL(fullUrl)
                 val input = BufferedInputStream(mUrl.openStream())
-
+                val out = StringBuilder()
                 val s = Scanner(input).useDelimiter("\\n")
                 while (s.hasNext()) {
                     val raw = s.next()
@@ -60,11 +54,8 @@ class RemoteDataSource @Inject constructor(
                 val jObject = JSONObject(out.toString())
                 val jHistory = jObject.getJSONObject(JSON_HISTORY)
                 val jData = jHistory.getJSONArray(JSON_DATA)
-                val size = jData.length()
-                val currentDateTime = formatter.format(Date())
 
-
-                for (i in 0 until size) {
+                for (i in 0 until jData.length()) {
 
                     val tqbr = jData.getJSONArray(i)
                     val high = tqbr.getDouble(INDEX_HIGH)
@@ -75,40 +66,22 @@ class RemoteDataSource @Inject constructor(
                     val id = tqbr.getString(INDEX_SECID)
                     val name = tqbr.getString(INDEX_SHORTNAME)
 
-
-                    val code = when {
-
-                        stock.NAME.contains("sb",ignoreCase = true) -> 0
-                        stock.NAME.contains("yn",ignoreCase = true) -> 1
-                        stock.NAME.contains("ga",ignoreCase = true) -> 2
-                        stock.NAME.contains("lk",ignoreCase = true) -> 3
-                        stock.NAME.contains("ro",ignoreCase = true) -> 4
-                        else -> 5
-
-                    }
-
-                    val sqlId = (idFormatter.parse(tdate)?.time ?: 0) + code
-
-
                     response.add(
                         Stock(
-                            id = sqlId,
                             name = name,
                             stockId = id,
                             tradeDate = tdate,
                             priceClose = close.toFloat(),
                             priceHigh = high.toFloat(),
                             priceLow = low.toFloat(),
-                            priceOpen = open.toFloat(),
-                            sysDate = currentDateTime
+                            priceOpen = open.toFloat()
                         )
                     )
                 }
-                outResult = Result.Success(response)
+                Result.Success(response)
             } catch (ex: Exception) {
-                outResult = Result.Error(ex)
+                Result.Error(ex)
             }
-            return@withContext outResult
         }
 
 }
