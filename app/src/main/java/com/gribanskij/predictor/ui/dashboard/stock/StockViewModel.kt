@@ -10,8 +10,6 @@ import com.gribanskij.predictor.data.StockModel
 import com.gribanskij.predictor.data.source.DefaultRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
-import java.util.Calendar
-import java.util.Date
 import javax.inject.Inject
 
 
@@ -32,21 +30,8 @@ class StockViewModel @Inject constructor(
 
     //данные по торгам с Мос.Биржи
     val historyStockData = input.switchMap { stock ->
-        rep.observeStockData(stock).map { r ->
-            when (r) {
-                is Result.Success -> {
-                    Result.Success(r.data.map { s ->
-                        Pair(s.tradeDate, s.priceClose)
-                    }
-                    )
-                }
-                is Result.Error -> {
-                    r
-                }
-                is Result.Loading -> {
-                    r
-                }
-            }
+        rep.observeHistoryData(stock).map { r ->
+            r.map { s -> Pair(s.tradeDate, s.priceClose)}
         }.asLiveData()
     }
 

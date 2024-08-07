@@ -9,8 +9,10 @@ import com.gribanskij.predictor.di.ViewModelModule
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 
@@ -30,21 +32,21 @@ class DefaultRepository @Inject constructor(
     lateinit var predictor: MlPredictor
 
 
-    private val dateNow = Calendar.getInstance().apply {
+    private val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
+
+
+    private val stDate = Calendar.getInstance().run {
         time = Date()
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
+        add(Calendar.MONTH, -1)
+        time
     }
 
     //предсказанные данные
     override fun observePredictData(
         stock: StockModel
-    ): Flow<Result<List<SimpleStock>>> {
-        val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, dateNow.time.time)
-        val sDate = lastWorkDates.last()
-        val eDate = lastWorkDates.first()
+    ): Flow<Result<List<PredictData>>> {
+        val sDate = formatter.format(stDate)
+        val eDate = formatter.format(Date())
 
         predictor.init(stock)
 
@@ -61,14 +63,14 @@ class DefaultRepository @Inject constructor(
                     val input = mutableListOf<Float>()
                     input.addAll(lastData.map { it.priceClose })
 
-                    val futureWorkDates = dateMaker.getFutureWorkDate(stock.MODEL_INPUT, dateNow.time.time)
-                    val predictData = mutableListOf<SimpleStock>()
+                    val futureWorkDates = dateMaker.getFutureWorkDate(stock.MODEL_INPUT, Date().time)
+                    val predictData = mutableListOf<PredictData>()
 
                     futureWorkDates.forEach {
                         val res = predictor.doInference(input.toFloatArray())
                         input.removeFirst()
                         input.add(res)
-                        predictData.add(SimpleStock(stock.NAME, it, res))
+                        predictData.add(PredictData(stock.NAME, it, res))
                     }
 
                     Result.Success(predictData)
@@ -80,60 +82,39 @@ class DefaultRepository @Inject constructor(
     }
 
     //исторические данные
-    override fun observeStockData(stock: StockModel): Flow<Result<List<Stock>>> {
-
-        val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, dateNow.time.time)
-        val sDate = lastWorkDates.last()
-        val eDate = lastWorkDates.first()
-
-        return localDataS.observeStockData(stock, sDate, eDate).distinctUntilChanged().map {
-            if (it.size >= stock.MODEL_INPUT) {
-                val firstIndex = it.size - stock.MODEL_INPUT
-                val lastIndex = it.size
-                Result.Success(it.subList(firstIndex, lastIndex))
-            } else {
-                Result.Loading
-            }
-        }
+    override fun observeHistoryData(stock: StockModel): Flow<List<Stock>> {
+        val sDate = formatter.format(stDate)
+        val eDate = formatter.format(Date())
+        return localDataS.observeStockData(stock, sDate, eDate)
     }
 
 
-    override fun observeUpdateStatus(stock: StockModel): Flow<Result<List<Stock>>> {
+    override fun observeUpdateStatus(stock: StockModel): Flow<List<Stock>>  = flow {
+            val sDate = formatter.format(stDate)
+            val eDate = formatter.format(Date())
 
-        return flow {
-            val lastWorkDates = dateMaker.getPrevWorkDate(stock.MODEL_INPUT, dateNow.time.time)
-            val sDate = lastWorkDates.last()
-            val eDate = lastWorkDates.first()
-            val numDates = lastWorkDates.size
+            val localData = localDataS.getStockData(stock, sDate, eDate)
 
-            when (val localData = localDataS.getStockData(stock, sDate, eDate)) {
-
-                is Result.Success -> {
-                    if (localData.data.size < stock.MODEL_INPUT) {
-                        val status = loadUpdate(stock, sDate, eDate, numDates)
-                        emit(status)
-                    } else {
-                        emit(localData)
-                    }
-                }
-
-                is Result.Error -> {
-                    emit(localData)
-                }
-
-                else -> {
-                    emit(Result.Error(Exception("Ошибка загрузки данных!")))
-                }
+            if (localData.size < stock.MODEL_INPUT) {
+                val status = loadUpdate(stock, sDate, eDate)
+                emit(status)
+            } else {
+                emit(localData)
             }
-        }
     }
 
     private suspend fun loadUpdate(
         stock: StockModel,
         startDate: String,
         stopDate: String,
-        needDataSize: Int
-    ): Result<List<Stock>> {
+    ): List<Stock> {
+
+
+        val resultFromWeb = remoteDataS.getStockData(stock, startDate, stopDate)
+        localDataS.saveData(resultFromWeb)
+        return resultFromWeb
+
+        /*
 
 
         return when (val resultFromWeb = remoteDataS.getStockData(stock, startDate, stopDate)) {
@@ -155,5 +136,9 @@ class DefaultRepository @Inject constructor(
                 Result.Error(Exception("Не допустимый статус!"))
             }
         }
+
+         */
     }
+
+
 }

@@ -1,10 +1,11 @@
 package com.gribanskij.predictor.data.source.remote
 
-import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.StockModel
 import com.gribanskij.predictor.data.source.DataSource
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.BufferedInputStream
@@ -34,7 +35,7 @@ class RemoteDataSource @Inject constructor(
         stock: StockModel,
         sDate: String,
         eDate: String
-    ): Result<List<Stock>> =
+    ): List<Stock> =
         withContext(ioDispatcher) {
 
             return@withContext try {
@@ -78,10 +79,16 @@ class RemoteDataSource @Inject constructor(
                         )
                     )
                 }
-                Result.Success(response)
+                response
             } catch (ex: Exception) {
-                Result.Error(ex)
+                emptyList()
             }
         }
+
+    override fun observeStockData(
+        stock: StockModel,
+        sDate: String,
+        eDate: String
+    ): Flow<List<Stock>>  = emptyFlow()
 
 }

@@ -31,12 +31,10 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
     private val model: StockViewModel by viewModels()
 
     @Inject
-    lateinit var  stocks:List<StockModel>
+    lateinit var stocks: List<StockModel>
 
     private val historyDataSet = mutableListOf<Pair<String, Float>>()
     private val predictDataSet = mutableListOf<Pair<String, Float>>()
-
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,7 +58,10 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
             val event = it.getContentIfNotHandled()
 
             event?.let { e ->
+                /*
                 when (e) {
+
+
 
                     is Result.Success -> {
                         //Toast.makeText(requireContext(), "Данные обновлены", Toast.LENGTH_SHORT)
@@ -81,37 +82,31 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                             e.exception.localizedMessage,
                             Toast.LENGTH_LONG
                         ).show()
-                    }
-                }
+
+                 */
             }
         }
 
         //исторические данные
         model.historyStockData.observe(viewLifecycleOwner) {
 
-            when (it) {
-                is Result.Success -> {
-                    historyDataSet.clear()
-                    historyDataSet.addAll(it.data)
-                    //последнее значение в списке - текущее число
-                    historyDataSet.lastOrNull()?.let { price ->
-                        showHistoryPrice(price)
-                        showTrend()
-                        updateStatus()
-                    }
+            historyDataSet.clear()
+            historyDataSet.addAll(it)
 
-                    if (binding.dataToggle.isChecked) {
-                        binding.chartProgress.visibility = View.INVISIBLE
-                        showDataChart(historyDataSet)
-                    }
-                }
-                is Result.Error -> {
-                    binding.chartProgress.visibility = View.INVISIBLE
-                }
-                is Result.Loading -> {
-                    binding.chartProgress.visibility = View.VISIBLE
-                }
+            binding.chartProgress.visibility = View.INVISIBLE
+
+            //последнее значение в списке - текущее число
+            historyDataSet.lastOrNull()?.let { price ->
+                showHistoryPrice(price)
+                showTrend()
+                updateStatus()
             }
+
+            if (binding.dataToggle.isChecked) {
+                binding.chartProgress.visibility = View.INVISIBLE
+                showDataChart(historyDataSet)
+            }
+
         }
 
         //предсказанные данные
@@ -134,9 +129,11 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                         showDataChart(predictDataSet)
                     }
                 }
+
                 is Result.Error -> {
                     binding.chartProgress.visibility = View.INVISIBLE
                 }
+
                 is Result.Loading -> {
                     binding.chartProgress.visibility = View.VISIBLE
                 }
@@ -241,6 +238,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                 binding.priceTrend.setImageDrawable(img)
                 binding.priceTrend.visibility = View.VISIBLE
             }
+
             false -> {
                 val img = AppCompatResources.getDrawable(
                     requireContext(), R.drawable.ic_trending_down_24
@@ -248,6 +246,7 @@ class StockFragment : Fragment(R.layout.fragment_stock) {
                 binding.priceTrend.setImageDrawable(img)
                 binding.priceTrend.visibility = View.VISIBLE
             }
+
             else -> {
                 binding.priceTrend.visibility = View.INVISIBLE
             }

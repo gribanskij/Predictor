@@ -1,6 +1,5 @@
 package com.gribanskij.predictor.data.source.local
 
-import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.StockModel
 import com.gribanskij.predictor.data.source.DataSource
 import com.gribanskij.predictor.data.source.local.entities.Stock
@@ -17,9 +16,9 @@ class LocalDataSource @Inject constructor(
         stock: StockModel,
         sDate: String,
         eDate: String
-    ): Result<List<Stock>> {
-        return Result.Success(stockDAO.getStockData(stock.NAME, sDate, eDate))
-    }
+    ): List<Stock> =
+        stockDAO.getStockData(stock.NAME, sDate, eDate)
+
 
     override fun observeStockData(
         stock: StockModel,

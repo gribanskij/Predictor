@@ -1,7 +1,7 @@
 package com.gribanskij.predictor.data.source
 
-data class SimpleStock(
-    val name: String,
+data class PredictData(
+    val stockName: String,
     val tradeDate: String,
     val value: Float
 )
