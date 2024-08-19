@@ -16,6 +16,9 @@ import javax.inject.Qualifier
 abstract class ViewModelModule {
 
 
+
+
+
     @Qualifier
     annotation class LocalData
 
@@ -28,10 +31,12 @@ abstract class ViewModelModule {
     @ViewModelScoped
     abstract fun bindLocalDataSource(imp: LocalDataSource): DataSource
 
-    @Binds
-    @RemoteData
-    @ViewModelScoped
-    abstract fun bindRemoteDataSource(imp: RemoteDataSource): DataSource
+    //@Binds
+    //@RemoteData
+    //@ViewModelScoped
+    //abstract fun bindRemoteDataSource(imp: RemoteDataSource): DataSource
+
+
 
 
 }

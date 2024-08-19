@@ -78,12 +78,20 @@ class DateMaker @Inject constructor() {
         val calendar = Calendar.getInstance(timeZone, locale)
         calendar.time = Date(startDate)
 
+        repeat(dayNum){
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+            val date = formatter.format(calendar.time)
+            resultListDate.add(date)
+        }
+
 
         //val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
         //if (currentHour < MMVB_END_TIME) calendar.add(Calendar.DAY_OF_MONTH, -1)
 
         //начинаем с следующего дня относительно текущего
         //calendar.add(Calendar.DAY_OF_MONTH, 1)
+
+        /*
 
         do {
 
@@ -106,6 +114,8 @@ class DateMaker @Inject constructor() {
                 }
             }
         } while (resultListDate.size < dayNum)
+
+         */
 
         return resultListDate
 

@@ -3,11 +3,13 @@ package com.gribanskij.predictor.data.source.local
 import com.gribanskij.predictor.data.StockModel
 import com.gribanskij.predictor.data.source.DataSource
 import com.gribanskij.predictor.data.source.local.entities.Stock
+import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@ViewModelScoped
 class LocalDataSource @Inject constructor(
     private val stockDAO: StockDAO
 ) : DataSource {

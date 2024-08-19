@@ -3,8 +3,10 @@ package com.gribanskij.predictor.data.source
 import com.gribanskij.predictor.data.DateMaker
 import com.gribanskij.predictor.data.Result
 import com.gribanskij.predictor.data.StockModel
+import com.gribanskij.predictor.data.source.local.LocalDataSource
 import com.gribanskij.predictor.data.source.local.entities.Stock
 import com.gribanskij.predictor.data.source.ml.MlPredictor
+import com.gribanskij.predictor.data.source.remote.RemoteDataSource
 import com.gribanskij.predictor.di.ViewModelModule
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineDispatcher
@@ -18,10 +20,8 @@ import javax.inject.Inject
 
 @ViewModelScoped
 class DefaultRepository @Inject constructor(
-    @ViewModelModule.RemoteData
-    private val remoteDataS: DataSource,
-    @ViewModelModule.LocalData
-    private val localDataS: DataSource,
+    private val remoteDataS: RemoteDataSource,
+    private val localDataS: LocalDataSource,
     private val ioDispatcher: CoroutineDispatcher
 ) : Repository {
 
@@ -41,6 +41,14 @@ class DefaultRepository @Inject constructor(
         time
     }
 
+    private val yesterday = Calendar.getInstance().run {
+        time = Date()
+        set(Calendar.HOUR,0)
+        set (Calendar.MINUTE,0)
+        add(Calendar.DAY_OF_MONTH, -1)
+        time.time
+    }
+
     //предсказанные данные
     override fun observePredictData(
         stock: StockModel
@@ -55,15 +63,16 @@ class DefaultRepository @Inject constructor(
 
                 //начинаем расчет только когда достаточно входных данных
                 if (data.size >= stock.MODEL_INPUT) {
-
                     val firstIndex = data.size - stock.MODEL_INPUT
-                    val lastIndex = data.size
-                    val lastData = data.subList(firstIndex, lastIndex)
+                    val lastData = data.subList(firstIndex, data.size)
 
                     val input = mutableListOf<Float>()
                     input.addAll(lastData.map { it.priceClose })
 
-                    val futureWorkDates = dateMaker.getFutureWorkDate(stock.MODEL_INPUT, Date().time)
+
+                    val date = formatter.parse(lastData.last().tradeDate)
+
+                    val futureWorkDates = dateMaker.getFutureWorkDate(stock.MODEL_INPUT, date.time)
                     val predictData = mutableListOf<PredictData>()
 
                     futureWorkDates.forEach {
@@ -89,18 +98,27 @@ class DefaultRepository @Inject constructor(
     }
 
 
-    override fun observeUpdateStatus(stock: StockModel): Flow<List<Stock>>  = flow {
-            val sDate = formatter.format(stDate)
-            val eDate = formatter.format(Date())
+    override fun observeUpdateStatus(stock: StockModel): Flow<List<Stock>> = flow {
+        val sDate = formatter.format(stDate)
+        val eDate = formatter.format(Date())
 
-            val localData = localDataS.getStockData(stock, sDate, eDate)
+        val localData = localDataS.getStockData(stock, sDate, eDate)
 
-            if (localData.size < stock.MODEL_INPUT) {
-                val status = loadUpdate(stock, sDate, eDate)
-                emit(status)
-            } else {
-                emit(localData)
-            }
+
+        val noElement = localData.size < stock.MODEL_INPUT
+        val notFresh = if (localData.isEmpty()) true else {
+
+            val lastD = localData.last()
+            val lastTradeDate = formatter.parse(lastD.tradeDate)?.time ?: 0L
+            lastTradeDate < yesterday
+        }
+
+        if (noElement || notFresh) {
+            val status = loadUpdate(stock, sDate, eDate)
+            emit(status)
+        } else {
+            emit(localData)
+        }
     }
 
     private suspend fun loadUpdate(
@@ -110,7 +128,7 @@ class DefaultRepository @Inject constructor(
     ): List<Stock> {
 
 
-        val resultFromWeb = remoteDataS.getStockData(stock, startDate, stopDate)
+        val resultFromWeb = remoteDataS.getStockData(stock.URL, startDate, stopDate)
         localDataS.saveData(resultFromWeb)
         return resultFromWeb
 

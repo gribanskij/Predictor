@@ -31,7 +31,7 @@ class StockViewModel @Inject constructor(
     //данные по торгам с Мос.Биржи
     val historyStockData = input.switchMap { stock ->
         rep.observeHistoryData(stock).map { r ->
-            r.map { s -> Pair(s.tradeDate, s.priceClose)}
+            r.map { s -> Pair(s.tradeDate, s.priceClose)}.takeLast(6)
         }.asLiveData()
     }
 
