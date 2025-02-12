@@ -15,10 +15,6 @@ import javax.inject.Qualifier
 @InstallIn(ViewModelComponent::class)
 abstract class ViewModelModule {
 
-
-
-
-
     @Qualifier
     annotation class LocalData
 
