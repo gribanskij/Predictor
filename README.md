@@ -1,4 +1,6 @@
-# Predictor Android experimental app
+# Predictor experimental app for prediction stock price
+
+
 
 ## Screenshots
 
